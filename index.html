@@ -1002,9 +1002,9 @@ const SYS_QUIZ = `dummy`; // legacy compat - 아래에서 buildSysPrompt() 사�
 // ════════════════════════════════════════
 // QUESTION GENERATION
 // ════════════════════════════════════════
-async function generateQuestions(count=5, includeReview=true) {
+async function generateQuestions(count=20, includeReview=true) {
   // Check daily limit
-  const remaining = S.dailyLimit - (S.dailyCount||0);
+  const remaining = (S.dailyLimit||20) - (S.dailyCount||0);
   if(remaining <= 0){
     showQuizState('quiz');
     document.getElementById('quiz-area').style.display='block';
@@ -1013,98 +1013,112 @@ async function generateQuestions(count=5, includeReview=true) {
     document.getElementById('q-result').classList.remove('show');
     return;
   }
-  // Cap count to remaining
   count = Math.min(count, remaining);
   showQuizState('loading');
-  const lvlDesc = ['','완전 입문(차변·대변 헷갈림 단계)','초급(기본 분개 가능, 재무제표 구조 학습)','중급(재무제표 읽기, 분석·판단 연습)'][S.userLevel];
+
+  const lvlDesc = ['','완전 입문(차변·대변 헷갈림 단계)','초급(기본 분개 가능, 재무제표 구조 학습)','중급(재무제표 읽기, 분析·판단 연습)'][S.userLevel] || '입문';
   const reviewCtx = includeReview && S.wrongQ.length
-    ? `\n반드시 포함: 이전 오답 개념 재출제 — ${S.wrongQ.slice(0,3).map(w=>w.concept).join(', ')}`
+    ? `\n오답 개념 재출제 포함: ${S.wrongQ.slice(0,3).map(w=>w.concept).join(', ')}`
     : '';
-  const p=S.userProfile||{};
-  const industryCtx=p.industry?`학습자 업종: ${p.industry}`:'';
-  const purposeCtx=p.role?`주요 목적: ${p.role}`:'';
-  const usedQs = [...(S.questions||[]),...(S.wrongQ||[])].map(q=>q.question||q.q).filter(Boolean).slice(-10);
-  const usedCtx = usedQs.length ? `\n이미 출제된 문제 (반드시 다른 문제로 출제): ${usedQs.map((q,i)=>`${i+1}. ${q.slice(0,30)}`).join(' / ')}` : '';
-  const prompt = `수준: ${lvlDesc}${reviewCtx}
-${industryCtx} ${purposeCtx}${usedCtx}
-JSON 배열로 정확히 ${count}개 문제를 생성하세요. ${count}개 미만 출력은 오류입니다.
-구성: Phase 1 객관식 2개 + Phase 2 객관식 2개 + Phase 3 객관식 또는 주관식 1개.
-시사 연계 1개 이상, 난이도 수준 ${S.userLevel} 기준, 이미 출제된 문제 제외.
-JSON 배열만 출력. 다른 텍스트 없이.`;
+  const p = S.userProfile||{};
+  const profileCtx = p.industry ? `학습자 업종: ${p.industry}. 목적: ${p.role||'전반적 학습'}.` : '';
+  const usedQs = [...(S.questions||[])].map(q=>q.question).filter(Boolean).slice(-20);
+
+  // Generate in batches of 5
+  let allQuestions = [];
+  const batchSize = 5;
+  const totalBatches = Math.ceil(count / batchSize);
 
   try {
-    const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt());
-    // Robust JSON extraction
-    let arr = null;
-    try {
-      // Try 1: direct parse after stripping markdown
-      const clean = raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g, s => {
-        const inner = s.replace(/^```json?/, '').replace(/```$/, '').trim();
-        return inner;
-      }).trim();
-      const start = clean.indexOf('[');
-      const end = clean.lastIndexOf(']');
-      if (start !== -1 && end !== -1) {
-        arr = JSON.parse(clean.slice(start, end + 1));
-      }
-    } catch(e1) {
+    for(let b = 0; b < totalBatches; b++){
+      const batchCount = Math.min(batchSize, count - allQuestions.length);
+      if(batchCount <= 0) break;
+
+      // Update progress indicator
+      const loadEl = document.querySelector('#quiz-loading .loading-text');
+      if(loadEl) loadEl.textContent = `문제 생성 중 ${allQuestions.length}/${count}`;
+
+      const recentUsed = [...usedQs, ...allQuestions.map(q=>q.question)].slice(-10);
+      const usedCtx = recentUsed.length
+        ? `\n중복 금지 (이미 출제된 문제): ${recentUsed.map(q=>q.slice(0,20)).join(' / ')}`
+        : '';
+
+      const batchPrompt = `수준: ${lvlDesc}${reviewCtx}
+${profileCtx}${usedCtx}
+재무회계 문제 정확히 ${batchCount}개를 JSON 배열로 생성하세요.
+구성: Phase 1 객관식, Phase 2 객관식, Phase 3 객관식/주관식 균형 있게.
+난이도: 수준 ${S.userLevel} 기준. 시사 연계 가능하면 포함.
+반드시 JSON 배열만 출력. 마크다운, 설명 없이.`;
+
       try {
-        // Try 2: find JSON array with regex
-        const match = raw.match(/\[[\s\S]*\]/);
-        if (match) arr = JSON.parse(match[0]);
-      } catch(e2) {
-        try {
-          // Try 3: find first { and last } and wrap in array
-          const s = raw.indexOf('{');
-          const e = raw.lastIndexOf('}');
-          if (s !== -1 && e !== -1) arr = JSON.parse('[' + raw.slice(s, e+1) + ']');
-        } catch(e3) {
-          throw new Error('AI 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
+        const raw = await callClaude([{role:'user', content:batchPrompt}], buildSysPrompt());
+        const batch = parseQuestionsJSON(raw);
+        if(batch && batch.length) {
+          allQuestions = allQuestions.concat(batch.slice(0, batchCount));
         }
+      } catch(batchErr) {
+        console.warn('Batch', b, 'failed:', batchErr);
+        // Continue with other batches even if one fails
       }
     }
-    if (!arr || !arr.length) throw new Error('문제 데이터가 비어있습니다. 다시 시도해주세요.');
-    // Normalize Chinese chars that AI sometimes mixes in
-    arr = arr.map(q => {
-      if(q.type) q.type = q.type.replace(/分析/g,'분석').replace(/處理/g,'처리').replace(/分/g,'분').replace(/析/g,'석');
-      return q;
-    });
-    // Validate and sanitize each question
-    // Normalize any mixed Chinese characters
-    arr = arr.map(q => {
-      if(q.type) q.type = q.type.replace(/分析/g,'분석').replace(/處理/g,'처리');
-      return q;
-    });
-    arr = arr.map(q => ({
-      type: (q.type||'분석형').replace('分析형','분석형').replace('分析','분析').replace(/分/g,'분'),
-      phase: Number(q.phase) || 1,
-      difficulty: Number(q.difficulty) || 2,
+
+    if(!allQuestions.length) throw new Error('문제를 생성하지 못했습니다. API 키를 확인하고 다시 시도해주세요.');
+
+    // Sanitize & normalize
+    allQuestions = allQuestions.map(q => ({
+      type: (()=>{ const t=(q.type||'분析형'); return t.replace(/分析/g,'분析').replace(/處理/g,'처리').replace(/分/g,'분').replace(/析/g,'석'); })(),
+      phase: Math.min(4, Math.max(1, Number(q.phase)||1)),
+      difficulty: Math.min(5, Math.max(1, Number(q.difficulty)||2)),
       isSubjective: Boolean(q.isSubjective),
       conceptKey: q.conceptKey || 'pl_structure',
       news: q.news || null,
       dataTable: q.dataTable || null,
       question: q.question || '문제를 불러오지 못했습니다.',
-      options: Array.isArray(q.options) ? q.options : null,
-      answer: q.answer !== undefined ? Number(q.answer) : null,
+      options: Array.isArray(q.options) && q.options.length ? q.options : null,
+      answer: q.answer !== undefined && q.answer !== null ? Number(q.answer) : null,
       scoringCriteria: q.scoringCriteria || null,
       explanation: q.explanation || '',
       journal: Array.isArray(q.journal) ? q.journal : null,
       knowledge: q.knowledge || '',
     }));
-    S.questions = arr;
-    S.answered = Array(arr.length).fill(null);
+
+    S.questions = allQuestions;
+    S.answered = Array(allQuestions.length).fill(null);
     S.curQ = 0;
     save();
     showQuizState('quiz');
     renderQ(0);
     updateSidebar();
     document.getElementById('more-wrap').style.display = 'none';
+
   } catch(e) {
     showQuizState('quiz');
     document.getElementById('quiz-area').style.display = 'block';
     document.getElementById('q-text').textContent = '문제 생성 오류: ' + e.message;
-    document.getElementById('q-opts').innerHTML = '<button class="btn btn-primary" style="margin-top:12px" onclick="generateQuestions(3,true)">다시 시도</button>';
+    document.getElementById('q-opts').innerHTML = `<button class="btn btn-primary" style="margin-top:12px" onclick="generateQuestions(20,true)">다시 시도</button>`;
+    document.getElementById('q-result').classList.remove('show');
   }
+}
+
+// Robust JSON parser - tries multiple strategies
+function parseQuestionsJSON(raw) {
+  // Strategy 1: strip markdown fences then parse array
+  try {
+    const clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    const s = clean.indexOf('['), e = clean.lastIndexOf(']');
+    if(s !== -1 && e !== -1) return JSON.parse(clean.slice(s, e+1));
+  } catch(e1){}
+  // Strategy 2: regex match array
+  try {
+    const m = raw.match(/\[[\s\S]*\]/);
+    if(m) return JSON.parse(m[0]);
+  } catch(e2){}
+  // Strategy 3: wrap single object in array
+  try {
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if(s !== -1 && e !== -1) return JSON.parse('[' + raw.slice(s, e+1) + ']');
+  } catch(e3){}
+  return null;
 }
 
 // ════════════════════════════════════════
