@@ -501,7 +501,7 @@ body {
     <div class="stat-mini"><span class="stat-mini-label">총 풀이</span><span class="stat-mini-val" id="sb-total">0</span></div>
     <div class="stat-mini"><span class="stat-mini-label">정답률</span><span class="stat-mini-val" id="sb-acc">—</span></div>
     <div class="stat-mini"><span class="stat-mini-label">오늘</span><span class="stat-mini-val" id="sb-today">0</span></div>
-    <div class="stat-mini"><span class="stat-mini-label">일일 진도</span><span class="stat-mini-val" id="sb-daily">0/20</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">오늘 총</span><span class="stat-mini-val" id="sb-daily">0문제</span></div>
     <div class="stat-mini"><span class="stat-mini-label">전체 진도</span><span class="stat-mini-val" id="sb-pct">0%</span></div>
     <div class="streak" id="sb-streak">🔥 연속 0일</div>
     <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);letter-spacing:.3px;">© Haji Lee · <a href="mailto:haji200@gmail.com" style="color:var(--text3);text-decoration:none;">haji200@gmail.com</a></div>
@@ -1004,16 +1004,8 @@ const SYS_QUIZ = `dummy`; // legacy compat - 아래에서 buildSysPrompt() 사�
 // ════════════════════════════════════════
 async function generateQuestions(count=20, includeReview=true) {
   // Check daily limit
-  const remaining = (S.dailyLimit||20) - (S.dailyCount||0);
-  if(remaining <= 0){
-    showQuizState('quiz');
-    document.getElementById('quiz-area').style.display='block';
-    document.getElementById('q-text').textContent='오늘의 학습 목표(20문제)를 달성했습니다! 내일 다시 학습해보세요. 🎉';
-    document.getElementById('q-opts').innerHTML='';
-    document.getElementById('q-result').classList.remove('show');
-    return;
-  }
-  count = Math.min(count, remaining);
+  // Daily soft limit - just track, don't hard block
+  const dailyDone = S.dailyCount||0;
   showQuizState('loading');
 
   const lvlDesc = ['','완전 입문(차변·대변 헷갈림 단계)','초급(기본 분개 가능, 재무제표 구조 학습)','중급(재무제표 읽기, 분析·판단 연습)'][S.userLevel] || '입문';
@@ -1418,6 +1410,10 @@ function updateDots(){
 // ════════════════════════════════════════
 function moreProblems(){
   S.sessionStart=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const done = S.dailyCount||0;
+  if(done >= 40){
+    if(!confirm(`오늘 이미 ${done}문제를 학습했습니다. 계속 학습하시겠습니까?`)) return;
+  }
   generateQuestions(5,true);
 }
 
@@ -1997,7 +1993,7 @@ function updateSidebar(){
   document.getElementById('sb-acc').textContent=s.total?Math.round(s.correct/s.total*100)+'%':'—';
   document.getElementById('sb-today').textContent=S.todayStats.total;
   const dailyEl=document.getElementById('sb-daily');
-  if(dailyEl) dailyEl.textContent=`${S.dailyCount||0}/20`;
+  if(dailyEl) dailyEl.textContent=`${S.dailyCount||0}문제`;
   const pp=S.phaseProgress;
   const pct=Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
   document.getElementById('sb-pct').textContent=pct+'%';
