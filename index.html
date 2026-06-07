@@ -501,6 +501,7 @@ body {
     <div class="stat-mini"><span class="stat-mini-label">총 풀이</span><span class="stat-mini-val" id="sb-total">0</span></div>
     <div class="stat-mini"><span class="stat-mini-label">정답률</span><span class="stat-mini-val" id="sb-acc">—</span></div>
     <div class="stat-mini"><span class="stat-mini-label">오늘</span><span class="stat-mini-val" id="sb-today">0</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">일일 진도</span><span class="stat-mini-val" id="sb-daily">0/20</span></div>
     <div class="stat-mini"><span class="stat-mini-label">전체 진도</span><span class="stat-mini-val" id="sb-pct">0%</span></div>
     <div class="streak" id="sb-streak">🔥 연속 0일</div>
     <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);letter-spacing:.3px;">© Haji Lee · <a href="mailto:haji200@gmail.com" style="color:var(--text3);text-decoration:none;">haji200@gmail.com</a></div>
@@ -589,7 +590,7 @@ body {
           </div>
         </div>
         <div class="more-wrap" id="more-wrap" style="display:none">
-          <button class="btn btn-ghost" onclick="moreProblems()">오늘 더 학습하기 ＋</button>
+          <button class="btn btn-ghost" onclick="moreProblems()" id="more-problems-btn">오늘 더 학습하기 ＋ (5문제)</button>
         </div>
       </div>
 
@@ -847,6 +848,8 @@ body {
 // ════════════════════════════════════════
 const DEFAULT_STATE = {
   diagnosed: false, diagStep: 0, diagAns: [],
+  dailyCount: 0,
+  dailyLimit: 20,
   userLevel: 1,
   userProfile: {},
   questions: [], answered: [], curQ: 0,
@@ -897,9 +900,27 @@ function load() {
     const d = localStorage.getItem('acct_v2');
     if (d) {
       const parsed = JSON.parse(d);
-      S = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+      // Deep merge: DEFAULT_STATE as base, saved data on top
+      // This way new fields from code updates are added without wiping old data
+      S = deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
     }
-  } catch(e){}
+  } catch(e){ console.warn('Load failed, using defaults:', e); }
+}
+
+function deepMerge(base, saved) {
+  const result = {...base};
+  for(const key of Object.keys(saved)) {
+    if(saved[key] === null || saved[key] === undefined) continue;
+    if(typeof base[key] === 'object' && !Array.isArray(base[key]) && base[key] !== null
+       && typeof saved[key] === 'object' && !Array.isArray(saved[key])) {
+      // Merge objects (e.g. conceptScores, phaseProgress, userProfile)
+      result[key] = {...base[key], ...saved[key]};
+    } else {
+      // Primitives and arrays: use saved value
+      result[key] = saved[key];
+    }
+  }
+  return result;
 }
 
 // ════════════════════════════════════════
@@ -981,7 +1002,19 @@ const SYS_QUIZ = `dummy`; // legacy compat - 아래에서 buildSysPrompt() 사�
 // ════════════════════════════════════════
 // QUESTION GENERATION
 // ════════════════════════════════════════
-async function generateQuestions(count=3, includeReview=true) {
+async function generateQuestions(count=5, includeReview=true) {
+  // Check daily limit
+  const remaining = S.dailyLimit - (S.dailyCount||0);
+  if(remaining <= 0){
+    showQuizState('quiz');
+    document.getElementById('quiz-area').style.display='block';
+    document.getElementById('q-text').textContent='오늘의 학습 목표(20문제)를 달성했습니다! 내일 다시 학습해보세요. 🎉';
+    document.getElementById('q-opts').innerHTML='';
+    document.getElementById('q-result').classList.remove('show');
+    return;
+  }
+  // Cap count to remaining
+  count = Math.min(count, remaining);
   showQuizState('loading');
   const lvlDesc = ['','완전 입문(차변·대변 헷갈림 단계)','초급(기본 분개 가능, 재무제표 구조 학습)','중급(재무제표 읽기, 분석·판단 연습)'][S.userLevel];
   const reviewCtx = includeReview && S.wrongQ.length
@@ -990,16 +1023,19 @@ async function generateQuestions(count=3, includeReview=true) {
   const p=S.userProfile||{};
   const industryCtx=p.industry?`학습자 업종: ${p.industry}`:'';
   const purposeCtx=p.role?`주요 목적: ${p.role}`:'';
+  const usedQs = [...(S.questions||[]),...(S.wrongQ||[])].map(q=>q.question||q.q).filter(Boolean).slice(-10);
+  const usedCtx = usedQs.length ? `\n이미 출제된 문제 (반드시 다른 문제로 출제): ${usedQs.map((q,i)=>`${i+1}. ${q.slice(0,30)}`).join(' / ')}` : '';
   const prompt = `수준: ${lvlDesc}${reviewCtx}
-${industryCtx} ${purposeCtx}
-문제 ${count}개 생성 (반드시 아래 규칙 준수):
-- Phase 1 문제 1개: 객관식 (isSubjective:false)
-- Phase 2 문제 1개: 객관식 (isSubjective:false)
-- Phase 3 문제 1개: 객관식 또는 주관식 (복잡한 분析이면 isSubjective:true, dataTable 포함)
-- count가 4 이상이면 Phase 4 문제 1개 추가: 반드시 주관식(isSubjective:true) + 실제 재무제표 수치 포함 dataTable 필수
-- 시사 연계 최소 1개, 학습자 프로필 업종/목적 맥락 반영
+${industryCtx} ${purposeCtx}${usedCtx}
+정확히 ${count}개 문제 생성 (반드시 아래 규칙 준수, ${count}개 미만이면 실패):
+- Phase 1 문제 2개: 객관식 (isSubjective:false), 서로 다른 개념
+- Phase 2 문제 2개: 객관식 (isSubjective:false), 서로 다른 개념
+- Phase 3 문제 1개: 객관식 또는 주관식
+- count가 5 초과면 Phase 4 문제 추가: 반드시 주관식(isSubjective:true) + 재무제표 수치 포함 dataTable
+- 시사 연계 최소 1개, 학습자 프로필 반영
 - 난이도 수준 ${S.userLevel}에 맞게
-JSON 배열만 출력.`;
+- 이미 출제된 문제와 절대 겹치지 않게
+JSON 배열 ${count}개만 출력.`;
 
   try {
     const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt());
@@ -1335,12 +1371,14 @@ function logStudySession(){
 
   let day=S.studyHistory.find(d=>d.date===dateStr);
   if(!day){day={date:dateStr,sessions:[]};S.studyHistory.push(day);}
+  const sessionTotal=S.questions.length;
   day.sessions.push({
     start, end:timeStr,
     total:S.todayStats.total,
     correct:S.todayStats.correct,
     phases:[...new Set(S.questions.map(q=>q.phase))]
   });
+  S.dailyCount=(S.dailyCount||0)+sessionTotal;
   S.sessionStart=null;
   save();
 }
@@ -1371,7 +1409,7 @@ function updateDots(){
 // ════════════════════════════════════════
 function moreProblems(){
   S.sessionStart=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-  generateQuestions(3,true);
+  generateQuestions(5,true);
 }
 
 // ════════════════════════════════════════
@@ -1949,6 +1987,8 @@ function updateSidebar(){
   document.getElementById('sb-total').textContent=s.total;
   document.getElementById('sb-acc').textContent=s.total?Math.round(s.correct/s.total*100)+'%':'—';
   document.getElementById('sb-today').textContent=S.todayStats.total;
+  const dailyEl=document.getElementById('sb-daily');
+  if(dailyEl) dailyEl.textContent=`${S.dailyCount||0}/20`;
   const pp=S.phaseProgress;
   const pct=Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
   document.getElementById('sb-pct').textContent=pct+'%';
@@ -1981,6 +2021,7 @@ function init(){
     else if(S.lastStudyDate&&S.lastStudyDate!==today) S.streakDays=1;
     S.lastStudyDate=today;
     S.todayStats={total:0,correct:0};
+    S.dailyCount=0;
     save();
   }
 
