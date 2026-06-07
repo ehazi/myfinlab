@@ -584,7 +584,7 @@ function buildSysPrompt() {
 - Phase 4: 반드시 주관식 + dataTable 재무자료 포함
 
 JSON 배열만 출력. 마크다운 없이:
-[{"type":"분析형 또는 처리형","phase":1~4,"difficulty":1~5,"isSubjective":false,"conceptKey":"debit_credit|five_accounts|basic_journal|asset_expense|pl_structure|bs_structure|cf_structure|ratios_basic|dart_reading|timeseries|accounting_judgment|accrual|roe_roa_ebitda|company_diagnosis|forecast|industry_analysis","news":null,"dataTable":null,"question":"문제","options":["A","B","C","D"],"answer":0,"scoringCriteria":null,"explanation":"해설","journal":null,"knowledge":"핵심개념"}]`;
+[{"type":"분석형 또는 처리형","phase":1~4,"difficulty":1~5,"isSubjective":false,"conceptKey":"debit_credit|five_accounts|basic_journal|asset_expense|pl_structure|bs_structure|cf_structure|ratios_basic|dart_reading|timeseries|accounting_judgment|accrual|roe_roa_ebitda|company_diagnosis|forecast|industry_analysis","news":null,"dataTable":null,"question":"문제","options":["A","B","C","D"],"answer":0,"scoringCriteria":null,"explanation":"해설","journal":null,"knowledge":"핵심개념"}]`;
 }
 
 // ═══════════════════════════════════════════
@@ -611,7 +611,7 @@ function parseJSON(raw) {
 }
 
 function sanitizeQ(q) {
-  const type = (q.type||'분析형').replace(/分析/g,'분析').replace(/處理/g,'처리').replace(/分/g,'분').replace(/析/g,'석');
+  const type = (q.type||'분석형');
   return {
     type,
     phase: Math.min(4, Math.max(1, Number(q.phase)||1)),
@@ -713,7 +713,7 @@ function renderQ(i) {
 
   const stars = [1,2,3,4,5].map(n =>
     `<span class="star ${n<=q.difficulty?'on':'off'}">★</span>`).join('');
-  const typeClass = (q.type||'').includes('분析') ? 'b-analysis' : 'b-processing';
+  const typeClass = (q.type||'').includes('분석') ? 'b-analysis' : 'b-processing';
   document.getElementById('q-meta').innerHTML = `
     <span class="badge ${typeClass}">${q.type}</span>
     <span class="badge b-p${q.phase}">Phase ${q.phase}</span>
@@ -994,7 +994,7 @@ const LEVEL_QS = [
   {q:'차변·대변의 역할을 어떻게 이해하고 있나요?',
     opts:['전혀 모른다','자산 증가=차변은 알지만 적용이 헷갈림','5대 계정별 증감 방향을 대체로 안다']},
   {q:'손익계산서에서 무엇을 읽을 수 있나요?',
-    opts:['매출이 있다는 정도','영업이익·순이익 구분은 하지만 분析은 어렵다','EBITDA, 영업레버리지 개념을 활용한다']},
+    opts:['매출이 있다는 정도','영업이익·순이익 구분은 하지만 분석은 어렵다','EBITDA, 영업레버리지 개념을 활용한다']},
   {q:'재무제표를 혼자 보면?',
     opts:['어디서 시작해야 할지 모른다','수치는 읽히지만 시사점 도출이 어렵다','핵심 비율을 계산하고 해석할 수 있다']},
 ];
@@ -1153,7 +1153,7 @@ function renderProgress() {
   const phases = [
     {key:'p1',label:'Phase 1',sub:'차변·대변·분개 기초',color:'#9b7fd4'},
     {key:'p2',label:'Phase 2',sub:'손익계산서·B/S·현금흐름',color:'#4dbe96'},
-    {key:'p3',label:'Phase 3',sub:'DART 分析·회계처리 판단',color:'#c9a96e'},
+    {key:'p3',label:'Phase 3',sub:'DART 분석·회계처리 판단',color:'#c9a96e'},
     {key:'p4',label:'Phase 4',sub:'기업 진단·Forecast',color:'#e05858'},
   ];
   document.getElementById('phase-grid').innerHTML = phases.map(p => {
@@ -1183,7 +1183,7 @@ const CONCEPT_META = {
   roe_roa_ebitda:{label:'ROE·ROA·EBITDA',phase:4,color:'#e05858'},
   company_diagnosis:{label:'기업 건강 진단',phase:4,color:'#e05858'},
   forecast:{label:'재무 Forecast',phase:4,color:'#e05858'},
-  industry_analysis:{label:'업종별 재무구조 분析',phase:4,color:'#e05858'},
+  industry_analysis:{label:'업종별 재무구조 분석',phase:4,color:'#e05858'},
 };
 
 function conceptPct(key) {
@@ -1195,7 +1195,7 @@ function conceptPct(key) {
 let radarChart = null, histChart = null;
 
 function renderConceptMap() {
-  const phaseLabels = ['Phase 1 · 회계의 언어','Phase 2 · 재무제표 구조','Phase 3 · 실전 分析','Phase 4 · 기업 진단·Forecast'];
+  const phaseLabels = ['Phase 1 · 회계의 언어','Phase 2 · 재무제표 구조','Phase 3 · 실전 분석','Phase 4 · 기업 진단·Forecast'];
   document.getElementById('concept-map').innerHTML = [1,2,3,4].map((p,pi) => {
     const concepts = Object.entries(CONCEPT_META).filter(([,m]) => m.phase===p);
     return `<div style="margin-bottom:20px">
@@ -1297,7 +1297,7 @@ function renderHistoryChart(data) {
 // ═══════════════════════════════════════════
 async function genReport() {
   const rEl = document.getElementById('report-body');
-  rEl.innerHTML = '<div class="loading" style="padding:20px"><div class="loading-text">분析 중</div><div class="dots"><span>●</span><span>●</span><span>●</span></div></div>';
+  rEl.innerHTML = '<div class="loading" style="padding:20px"><div class="loading-text">분석 중</div><div class="dots"><span>●</span><span>●</span><span>●</span></div></div>';
   const pp = S.phaseProgress;
   const total = Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
   const acc = S.allStats.total ? Math.round(S.allStats.correct/S.allStats.total*100) : 0;
@@ -1392,7 +1392,7 @@ function resetData() {
 const SECTION_META = {
   learn:    {title:'오늘의 학습',     sub:'Phase 믹스 · 시사 연계 · 기업 진단 훈련'},
   review:   {title:'오답 복습',       sub:'틀린 개념은 완전히 이해할 때까지 반복'},
-  progress: {title:'주간 리포트',     sub:'목표 대비 갭(Gap) 분析 — 칭찬 없이'},
+  progress: {title:'주간 리포트',     sub:'목표 대비 갭(Gap) 분석 — 칭찬 없이'},
   concepts: {title:'개념 이해도 맵',  sub:'Phase 1~4 · 개념별 현재 숙련도 시각화'},
   history:  {title:'학습 이력',       sub:'날짜별 학습 기록'},
   roadmap:  {title:'학습 로드맵',     sub:'My FinLab 설계 철학과 Phase 1~4 구조'},
