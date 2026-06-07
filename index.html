@@ -962,7 +962,7 @@ ${profileCtx}
 
 JSON 배열만 출력. 마크다운 없이:
 [{
-  "type": "분析형|처리형",
+  "type": "분석형 또는 처리형 (반드시 한글로)",
   "phase": 1~4,
   "difficulty": 1~5,
   "isSubjective": false 또는 true,
@@ -1036,9 +1036,19 @@ JSON 배열만 출력.`;
       }
     }
     if (!arr || !arr.length) throw new Error('문제 데이터가 비어있습니다. 다시 시도해주세요.');
+    // Normalize Chinese chars that AI sometimes mixes in
+    arr = arr.map(q => {
+      if(q.type) q.type = q.type.replace(/分析/g,'분석').replace(/處理/g,'처리').replace(/分/g,'분').replace(/析/g,'석');
+      return q;
+    });
     // Validate and sanitize each question
+    // Normalize any mixed Chinese characters
+    arr = arr.map(q => {
+      if(q.type) q.type = q.type.replace(/分析/g,'분석').replace(/處理/g,'처리');
+      return q;
+    });
     arr = arr.map(q => ({
-      type: q.type || '분析형',
+      type: (q.type||'분석형').replace('分析형','분석형').replace('分析','분析').replace(/分/g,'분'),
       phase: Number(q.phase) || 1,
       difficulty: Number(q.difficulty) || 2,
       isSubjective: Boolean(q.isSubjective),
