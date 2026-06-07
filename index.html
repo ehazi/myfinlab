@@ -920,7 +920,7 @@ async function callClaude(messages, system) {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model: 'claude-opus-4-5',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: system || '',
       messages,
@@ -972,7 +972,7 @@ JSON 배열만 출력. 마크다운 없이:
   "question": "문제 텍스트 (Phase4는 자료 분석 후 기업 상태·Forecast를 서술하라는 형식)",
   "options": ["A","B","C","D"] 또는 null (주관식이면 null),
   "answer": 0~3 또는 null (주관식이면 null),
-  "scoringCriteria": "주관식 전용: 채점 핵심 포인트 3~5개 (객관식이면 null)",
+  "scoringCriteria": "주관식이면 채점기준 3개, 객관식이면 null",
   "explanation": "해설 냉정하게 300자 이내",
   "journal": [{"side":"차변","account":"계정","amount":"금액"}] 또는 null,
   "knowledge": "파생 핵심 개념 150자 이내"
@@ -1006,8 +1006,53 @@ JSON 배열만 출력.`;
 
   try {
     const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt());
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const arr = JSON.parse(clean.slice(clean.indexOf('['), clean.lastIndexOf(']')+1));
+    // Robust JSON extraction
+    let arr = null;
+    try {
+      // Try 1: direct parse after stripping markdown
+      const clean = raw.replace(/```json[\s\S]*?```|```[\s\S]*?```/g, s => {
+        const inner = s.replace(/^```json?/, '').replace(/```$/, '').trim();
+        return inner;
+      }).trim();
+      const start = clean.indexOf('[');
+      const end = clean.lastIndexOf(']');
+      if (start !== -1 && end !== -1) {
+        arr = JSON.parse(clean.slice(start, end + 1));
+      }
+    } catch(e1) {
+      try {
+        // Try 2: find JSON array with regex
+        const match = raw.match(/\[[\s\S]*\]/);
+        if (match) arr = JSON.parse(match[0]);
+      } catch(e2) {
+        try {
+          // Try 3: find first { and last } and wrap in array
+          const s = raw.indexOf('{');
+          const e = raw.lastIndexOf('}');
+          if (s !== -1 && e !== -1) arr = JSON.parse('[' + raw.slice(s, e+1) + ']');
+        } catch(e3) {
+          throw new Error('AI 응답을 파싱할 수 없습니다. 다시 시도해주세요.');
+        }
+      }
+    }
+    if (!arr || !arr.length) throw new Error('문제 데이터가 비어있습니다. 다시 시도해주세요.');
+    // Validate and sanitize each question
+    arr = arr.map(q => ({
+      type: q.type || '분析형',
+      phase: Number(q.phase) || 1,
+      difficulty: Number(q.difficulty) || 2,
+      isSubjective: Boolean(q.isSubjective),
+      conceptKey: q.conceptKey || 'pl_structure',
+      news: q.news || null,
+      dataTable: q.dataTable || null,
+      question: q.question || '문제를 불러오지 못했습니다.',
+      options: Array.isArray(q.options) ? q.options : null,
+      answer: q.answer !== undefined ? Number(q.answer) : null,
+      scoringCriteria: q.scoringCriteria || null,
+      explanation: q.explanation || '',
+      journal: Array.isArray(q.journal) ? q.journal : null,
+      knowledge: q.knowledge || '',
+    }));
     S.questions = arr;
     S.answered = Array(arr.length).fill(null);
     S.curQ = 0;
@@ -1018,7 +1063,9 @@ JSON 배열만 출력.`;
     document.getElementById('more-wrap').style.display = 'none';
   } catch(e) {
     showQuizState('quiz');
+    document.getElementById('quiz-area').style.display = 'block';
     document.getElementById('q-text').textContent = '문제 생성 오류: ' + e.message;
+    document.getElementById('q-opts').innerHTML = '<button class="btn btn-primary" style="margin-top:12px" onclick="generateQuestions(3,true)">다시 시도</button>';
   }
 }
 
@@ -1212,8 +1259,12 @@ async function submitSubjective(i){
 
 학습자 답변:
 ${text}`}],sys);
-    const clean=raw.replace(/\`\`\`json|\`\`\`/g,'').trim();
-    const result=JSON.parse(clean.slice(clean.indexOf('{'),clean.lastIndexOf('}')+1));
+    let result=null;
+    try{
+      const match=raw.match(/\{[\s\S]*\}/);
+      if(match) result=JSON.parse(match[0]);
+    }catch(pe){result={score:50,feedback:'채점 중 오류가 발생했습니다. 해설을 참고하세요.'};}
+    if(!result) result={score:50,feedback:'채점 결과를 파싱할 수 없습니다.'};
     const score=Math.max(0,Math.min(100,result.score||0));
 
     S.answered[i]={text,score,feedback:result.feedback};
@@ -1596,11 +1647,22 @@ JSON 배열 1개만 출력.`;
 
   try{
     const raw=await callClaude([{role:'user',content:prompt}],buildSysPrompt());
-    const clean=raw.replace(/```json|```/g,'').trim();
-    const arr=JSON.parse(clean.slice(clean.indexOf('['),clean.lastIndexOf(']')+1));
+    let arr=null;
+    try{
+      const match=raw.match(/\[[\s\S]*\]/);
+      if(match) arr=JSON.parse(match[0]);
+      else {
+        const s=raw.indexOf('{'),e=raw.lastIndexOf('}');
+        if(s!==-1&&e!==-1) arr=JSON.parse('['+raw.slice(s,e+1)+']');
+      }
+    }catch(e2){throw new Error('파싱 오류');}
+    if(!arr||!arr.length) throw new Error('데이터 없음');
     S.questions=arr; S.answered=[null]; S.curQ=0;
     save(); showQuizState('quiz'); renderQ(0);
-  }catch(e){showQuizState('quiz');}
+  }catch(e){
+    showQuizState('quiz');
+    document.getElementById('q-text').textContent='복습 문제 생성 오류: '+e.message;
+  }
 }
 
 function updateReviewBadge(){
