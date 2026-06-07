@@ -886,7 +886,7 @@ const DEFAULT_STATE = {
   apiKey: '',
   sessionStart: null,
   chatHistory: [],
-  phaseProgress: {p1:5,p2:2,p3:0,p4:0},
+  phaseProgress: {p1:0,p2:0,p3:0,p4:0},
 };
 
 let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -910,7 +910,11 @@ function load() {
 // ════════════════════════════════════════
 async function callClaude(messages, system) {
   const key = S.apiKey || '';
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {
+    'Content-Type': 'application/json',
+    'anthropic-dangerous-direct-browser-access': 'true',
+    'anthropic-version': '2023-06-01',
+  };
   if (key) headers['x-api-key'] = key;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -1619,8 +1623,8 @@ const PROFILE_QS = [
     opts:['독립법인 (단독)','대기업 자회사/계열사','중견·중소 계열사','공공기관 자회사']},
   {id:'industry', type:'text', q:'업종 또는 업태를 간단히 적어주세요.',
     placeholder:'예: IT서비스(SI), 제조, 유통, 금융, 의료 등'},
-  {id:'role', type:'select', q:'재무회계 지식이 주로 필요한 상황은?',
-    opts:['CEO/임원 보고 및 소통','투자·이직 대상 기업 분석','실무 회계처리 판단','예산 수립 및 원가 분석','전반적으로 모두']},
+  {id:'role', type:'multi', q:'재무회계 지식이 필요한 상황을 모두 선택하세요. (복수 선택 가능)',
+    opts:['CEO/임원 보고 및 소통','투자·이직 대상 기업 분석','실무 회계처리 판단','예산 수립 및 원가 분석','담당자 검토 및 피드백']},
   {id:'memo', type:'text', q:'학습에서 특히 어렵거나 궁금한 점이 있으면 자유롭게 적어주세요. (선택)',
     placeholder:'예: 현금흐름표가 왜 필요한지 모르겠다, 감가상각 개념이 헷갈린다 등'},
 ];
@@ -1655,6 +1659,15 @@ function renderDiagStep(){
         <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">프로필 설정 ${curStep} / ${totalSteps}</div>
         <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)">${pq.q}</div>
         ${pq.opts.map((o,i)=>`<div class="diag-opt" onclick="selectProfile('${pq.id}','${o}',${i})">${o}</div>`).join('')}`;
+    } else if(pq.type==='multi'){
+      inner.innerHTML=`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">프로필 설정 ${curStep} / ${totalSteps}</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)">${pq.q}</div>
+        ${pq.opts.map((o,i)=>`<div class="diag-opt multi-opt" id="mopt-${i}" onclick="toggleMultiOpt(${i},'${o}')">${o}</div>`).join('')}
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" onclick="submitMultiOpts('${pq.id}')">다음 →</button>
+        </div>`;
+      window._multiSelected = {};
     } else {
       inner.innerHTML=`
         <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">프로필 설정 ${curStep} / ${totalSteps}</div>
@@ -1689,6 +1702,25 @@ function selectLevel(val){
   document.querySelectorAll('.diag-opt').forEach((el,i)=>el.classList.toggle('sel',i===val));
   diagAns.push(val);
   setTimeout(advanceDiag, 300);
+}
+
+function toggleMultiOpt(idx, val){
+  if(!window._multiSelected) window._multiSelected={};
+  const el=document.getElementById('mopt-'+idx);
+  if(window._multiSelected[idx]){
+    delete window._multiSelected[idx];
+    el.classList.remove('sel');
+  } else {
+    window._multiSelected[idx]=val;
+    el.classList.add('sel');
+  }
+}
+
+function submitMultiOpts(id){
+  const selected=Object.values(window._multiSelected||{});
+  profileData[id]=selected.length?selected.join(', '):'미선택';
+  window._multiSelected={};
+  advanceDiag();
 }
 
 function advanceDiag(){
