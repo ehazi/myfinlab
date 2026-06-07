@@ -939,7 +939,7 @@ async function callClaude(messages, system) {
     headers,
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
+      max_tokens: 4000,
       system: system || '',
       messages,
     })
@@ -1027,15 +1027,10 @@ async function generateQuestions(count=5, includeReview=true) {
   const usedCtx = usedQs.length ? `\n이미 출제된 문제 (반드시 다른 문제로 출제): ${usedQs.map((q,i)=>`${i+1}. ${q.slice(0,30)}`).join(' / ')}` : '';
   const prompt = `수준: ${lvlDesc}${reviewCtx}
 ${industryCtx} ${purposeCtx}${usedCtx}
-정확히 ${count}개 문제 생성 (반드시 아래 규칙 준수, ${count}개 미만이면 실패):
-- Phase 1 문제 2개: 객관식 (isSubjective:false), 서로 다른 개념
-- Phase 2 문제 2개: 객관식 (isSubjective:false), 서로 다른 개념
-- Phase 3 문제 1개: 객관식 또는 주관식
-- count가 5 초과면 Phase 4 문제 추가: 반드시 주관식(isSubjective:true) + 재무제표 수치 포함 dataTable
-- 시사 연계 최소 1개, 학습자 프로필 반영
-- 난이도 수준 ${S.userLevel}에 맞게
-- 이미 출제된 문제와 절대 겹치지 않게
-JSON 배열 ${count}개만 출력.`;
+JSON 배열로 정확히 ${count}개 문제를 생성하세요. ${count}개 미만 출력은 오류입니다.
+구성: Phase 1 객관식 2개 + Phase 2 객관식 2개 + Phase 3 객관식 또는 주관식 1개.
+시사 연계 1개 이상, 난이도 수준 ${S.userLevel} 기준, 이미 출제된 문제 제외.
+JSON 배열만 출력. 다른 텍스트 없이.`;
 
   try {
     const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt());
