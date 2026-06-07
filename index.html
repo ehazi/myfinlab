@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My FinLab</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ─── RESET & BASE ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #0d0d10;
+  --bg2:     #141418;
+  --bg3:     #1c1c22;
+  --bg4:     #242430;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text:    #e2e0da;
+  --text2:   #8a8880;
+  --text3:   #4a4848;
+  --gold:    #c9a96e;
+  --gold2:   #e8c88a;
+  --gold-bg: rgba(201,169,110,0.08);
+  --green:   #4dbe96;
+  --green-bg:rgba(77,190,150,0.08);
+  --red:     #e05858;
+  --red-bg:  rgba(224,88,88,0.08);
+  --blue:    #5b8fd4;
+  --blue-bg: rgba(91,143,212,0.08);
+  --amber:   #d4942a;
+  --amber-bg:rgba(212,148,42,0.08);
+  --purple:  #9b7fd4;
+  --radius:  10px;
+  --radius-lg: 14px;
+  --font: 'Pretendard', -apple-system, sans-serif;
+  --sidebar-w: 220px;
+  --transition: .18s cubic-bezier(.4,0,.2,1);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── LAYOUT ─── */
+.app { display: flex; min-height: 100vh; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; bottom: 0;
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform var(--transition);
+}
+.sidebar-top {
+  padding: 22px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 17px; font-weight: 700; color: var(--gold); letter-spacing: -.2px; }
+.logo-sub { font-size: 12px; color: var(--text3); margin-top: 3px; letter-spacing: .3px; }
+
+.nav { padding: 10px 0; flex: 1; overflow-y: auto; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 18px; cursor: pointer;
+  font-size: 17px; color: var(--text2);
+  border-left: 2px solid transparent;
+  transition: all var(--transition);
+  user-select: none;
+}
+.nav-item:hover { color: var(--text); background: var(--bg3); }
+.nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-bg); font-weight: 600; }
+.nav-icon { font-size: 17px; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red-bg); color: var(--red);
+  border: 1px solid var(--red); border-radius: 10px;
+  font-size: 12px; padding: 1px 6px; font-weight: 600;
+}
+
+.sidebar-bottom {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+.stat-mini { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+.stat-mini-label { color: var(--text3); }
+.stat-mini-val { color: var(--gold); font-weight: 600; }
+.streak {
+  margin-top: 10px;
+  background: var(--amber-bg);
+  border: 1px solid rgba(212,148,42,.3);
+  border-radius: 8px; padding: 7px 10px;
+  font-size: 13px; color: var(--amber);
+  text-align: center; font-weight: 600;
+}
+
+/* ─── MAIN ─── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.topbar {
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+}
+.topbar-left { }
+.topbar-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.topbar-sub { font-size: 13px; color: var(--text3); margin-top: 2px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ─── TABS ─── */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  background: var(--bg);
+}
+.tab {
+  padding: 11px 18px;
+  font-size: 17px; cursor: pointer;
+  color: var(--text2);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--transition);
+  font-weight: 500;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 700; }
+
+/* ─── CONTENT ─── */
+.content {
+  flex: 1; padding: 24px 28px;
+  max-width: 860px;
+  overflow-y: auto;
+}
+.section { display: none; }
+.section.active { display: block; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-bottom: 14px;
+}
+.card-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.card-sub { font-size: 13px; color: var(--text3); margin-bottom: 14px; }
+.card-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+/* ─── BADGES ─── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 12px; font-weight: 700;
+  padding: 2px 8px; border-radius: 5px;
+  letter-spacing: .3px;
+}
+.b-analysis { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(91,143,212,.3); }
+.b-processing { background: var(--green-bg); color: var(--green); border: 1px solid rgba(77,190,150,.3); }
+.b-review { background: var(--red-bg); color: var(--red); border: 1px solid rgba(224,88,88,.3); }
+.b-news { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(212,148,42,.3); }
+.b-p1 { background: rgba(155,127,212,.1); color: var(--purple); border: 1px solid rgba(155,127,212,.3); }
+.b-p2 { background: rgba(77,190,150,.1); color: var(--green); border: 1px solid rgba(77,190,150,.3); }
+.b-p3 { background: rgba(201,169,110,.1); color: var(--gold); border: 1px solid rgba(201,169,110,.3); }
+.b-p4 { background: rgba(224,88,88,.1); color: var(--red); border: 1px solid rgba(224,88,88,.3); }
+
+/* ─── STARS ─── */
+.stars { display: inline-flex; gap: 2px; }
+.star { font-size: 14px; line-height: 1; }
+.star.on { color: var(--gold); }
+.star.off { color: var(--bg4); }
+
+/* ─── Q META ─── */
+.q-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.q-context {
+  background: var(--amber-bg);
+  border-left: 2px solid var(--amber);
+  border-radius: 0 8px 8px 0;
+  padding: 9px 12px;
+  margin-bottom: 14px;
+}
+.q-context-label { font-size: 12px; color: var(--amber); font-weight: 700; letter-spacing: .5px; margin-bottom: 4px; }
+.q-context-text { font-size: 14px; color: rgba(212,148,42,.8); line-height: 1.5; }
+.q-text {
+  font-size: 17px; font-weight: 600;
+  line-height: 1.7; color: var(--text);
+  margin-bottom: 18px;
+}
+
+/* ─── OPTIONS ─── */
+.opts { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 11px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); cursor: pointer;
+  background: var(--bg3);
+  transition: border-color var(--transition), background var(--transition);
+}
+.opt:hover { border-color: var(--border2); background: var(--bg4); }
+.opt.correct { border-color: var(--green); background: var(--green-bg); }
+.opt.wrong { border-color: var(--red); background: var(--red-bg); }
+.opt.disabled { cursor: default; pointer-events: none; }
+.opt-key {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 5px; border: 1px solid var(--border2);
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--text2);
+  margin-top: 1px;
+}
+.opt-text { font-size: 17px; line-height: 1.55; }
+
+/* ─── RESULT ─── */
+.result { display: none; }
+.result.show { display: block; }
+.result-verdict {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px;
+  font-size: 17px; font-weight: 700; margin-bottom: 12px;
+}
+.verdict-correct { background: var(--green-bg); color: var(--green); border: 1px solid rgba(77,190,150,.3); }
+.verdict-wrong { background: var(--red-bg); color: var(--red); border: 1px solid rgba(224,88,88,.3); }
+.explain-box {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px;
+  font-size: 17px; line-height: 1.75; color: var(--text2);
+  margin-bottom: 10px;
+}
+.section-label {
+  font-size: 12px; font-weight: 700; color: var(--text3);
+  letter-spacing: .8px; text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+/* ─── JOURNAL ─── */
+.journal {
+  width: 100%; border-collapse: collapse;
+  font-size: 14px; margin-bottom: 10px;
+}
+.journal th {
+  text-align: left; padding: 5px 10px;
+  background: var(--bg3); color: var(--text3);
+  font-weight: 700; font-size: 12px;
+  letter-spacing: .5px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.journal td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.j-dr { color: var(--blue); }
+.j-cr { color: var(--green); padding-left: 24px; }
+.j-amt { text-align: right; color: var(--gold); font-weight: 600; }
+
+/* ─── KNOWLEDGE ─── */
+.know-box {
+  border-left: 2px solid var(--gold);
+  background: var(--gold-bg);
+  border-radius: 0 8px 8px 0;
+  padding: 11px 14px;
+  font-size: 17px; line-height: 1.7; color: var(--text2);
+  margin-bottom: 10px;
+}
+
+/* ─── ACTION ROW ─── */
+.action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 15px; border-radius: 8px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: var(--font);
+  border: none; transition: all var(--transition);
+  letter-spacing: -.1px;
+}
+.btn:disabled { opacity: .4; cursor: default; }
+.btn-primary { background: var(--gold); color: #0d0d10; }
+.btn-primary:hover:not(:disabled) { background: var(--gold2); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg3); color: var(--text); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(224,88,88,.3); }
+
+/* ─── QUIZ NAV ─── */
+.quiz-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 6px;
+}
+.q-dots { display: flex; gap: 5px; }
+.q-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--bg4); transition: background var(--transition);
+}
+.q-dot.done { background: var(--green); }
+.q-dot.cur { background: var(--gold); }
+.q-dot.wrong-dot { background: var(--red); }
+
+/* ─── CHAT ─── */
+.chat-history {
+  max-height: 360px; overflow-y: auto;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+.chat-history::-webkit-scrollbar { width: 3px; }
+.chat-history::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.chat-msg {
+  padding: 10px 13px; border-radius: 9px;
+  margin-bottom: 8px; font-size: 17px; line-height: 1.65;
+}
+.msg-user { background: var(--bg3); border: 1px solid var(--border); }
+.msg-ai { background: var(--gold-bg); border: 1px solid rgba(201,169,110,.15); }
+.msg-label { font-size: 12px; font-weight: 700; margin-bottom: 5px; letter-spacing: .5px; }
+.msg-user .msg-label { color: var(--text3); }
+.msg-ai .msg-label { color: var(--gold); }
+.chat-row { display: flex; gap: 8px; }
+.chat-input {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: 9px;
+  padding: 10px 13px; font-size: 17px;
+  color: var(--text); font-family: var(--font); outline: none;
+  transition: border-color var(--transition);
+}
+.chat-input:focus { border-color: var(--gold); }
+.chat-input::placeholder { color: var(--text3); }
+
+/* ─── PROGRESS / CHARTS ─── */
+.phase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.phase-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.pc-label { font-size: 13px; color: var(--text2); margin-bottom: 4px; font-weight: 600; }
+.pc-pct { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+.bar-wrap { background: var(--bg4); border-radius: 3px; height: 4px; margin-bottom: 8px; }
+.bar-fill { height: 4px; border-radius: 3px; transition: width .5s ease; }
+.pc-note { font-size: 12px; color: var(--text3); }
+
+.chart-wrap { position: relative; height: 280px; margin-bottom: 16px; }
+.radar-wrap { position: relative; height: 320px; }
+
+/* ─── CONCEPT MAP ─── */
+.concept-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.concept-row:last-child { border-bottom: none; }
+.concept-name { font-size: 14px; color: var(--text); min-width: 160px; flex-shrink: 0; }
+.concept-bar-wrap { flex: 1; background: var(--bg4); border-radius: 3px; height: 6px; }
+.concept-bar { height: 6px; border-radius: 3px; transition: width .6s ease; }
+.concept-pct { font-size: 13px; color: var(--text2); min-width: 36px; text-align: right; font-weight: 600; }
+.concept-flag { font-size: 13px; min-width: 50px; text-align: right; }
+
+/* ─── HISTORY ─── */
+.history-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.history-item:last-child { border-bottom: none; }
+.history-date { color: var(--text3); min-width: 100px; }
+.history-detail { flex: 1; color: var(--text2); }
+.history-stat { color: var(--gold); font-weight: 700; min-width: 60px; text-align: right; }
+
+/* ─── REVIEW ─── */
+.review-item {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 13px 16px; margin-bottom: 9px;
+  cursor: pointer; transition: border-color var(--transition);
+}
+.review-item:hover { border-color: var(--border2); }
+.review-q { font-size: 17px; color: var(--text); margin-bottom: 5px; line-height: 1.5; }
+.review-meta { display: flex; gap: 10px; font-size: 13px; color: var(--text3); }
+
+/* ─── NOTION SETUP ─── */
+.setup-wrap { max-width: 520px; }
+.setup-step {
+  display: flex; gap: 14px; margin-bottom: 20px;
+}
+.setup-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--gold-bg); border: 1px solid rgba(201,169,110,.4);
+  color: var(--gold); font-weight: 800; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.setup-body { flex: 1; }
+.setup-step-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.setup-step-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.setup-input {
+  width: 100%; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: 8px;
+  padding: 9px 12px; font-size: 14px; color: var(--text);
+  font-family: monospace; outline: none; margin-top: 6px;
+  transition: border-color var(--transition);
+}
+.setup-input:focus { border-color: var(--gold); }
+.setup-input::placeholder { color: var(--text3); }
+
+/* ─── DIAGNOSIS ─── */
+.diag-opt {
+  padding: 11px 14px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 9px;
+  cursor: pointer; margin-bottom: 7px; font-size: 17px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.diag-opt:hover { border-color: var(--border2); }
+.diag-opt.sel { border-color: var(--gold); background: var(--gold-bg); font-weight: 600; }
+
+/* ─── LOADING ─── */
+.loading { display: flex; align-items: center; gap: 6px; padding: 32px; justify-content: center; }
+.loading-text { font-size: 14px; color: var(--text3); }
+.dots span { display: inline-block; animation: blink 1.2s infinite both; color: var(--gold); }
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+
+/* ─── GOAL CARD ─── */
+.goal-card {
+  background: linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(91,143,212,0.06) 100%);
+  border: 1px solid rgba(201,169,110,0.2);
+  border-radius: var(--radius-lg); padding: 18px 22px; margin-bottom: 14px;
+}
+.goal-title { font-size: 17px; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+.goal-text { font-size: 14px; color: var(--text2); line-height: 1.65; }
+
+/* ─── MORE BTN ─── */
+.more-wrap { text-align: center; padding: 12px 0; }
+
+/* ─── WEEKLY REPORT ─── */
+.report-kpi { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.kpi-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px; text-align: center;
+}
+.kpi-val { font-size: 24px; font-weight: 800; color: var(--gold); }
+.kpi-label { font-size: 12px; color: var(--text3); margin-top: 3px; font-weight: 600; letter-spacing: .3px; }
+
+.assessment-box {
+  background: var(--bg3); border-left: 2px solid var(--red);
+  border-radius: 0 8px 8px 0; padding: 13px 16px;
+  font-size: 17px; line-height: 1.75; color: var(--text2); margin-bottom: 10px;
+}
+
+/* ─── MOBILE ─── */
+.hamburger {
+  display: none; background: none; border: none;
+  cursor: pointer; color: var(--text); font-size: 20px; padding: 4px;
+}
+.overlay { display: none; }
+
+@media (max-width: 700px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .hamburger { display: block; }
+  .content { padding: 16px; }
+  .topbar { padding: 14px 16px 10px; }
+  .tabs { padding: 0 16px; }
+  .phase-grid { grid-template-columns: 1fr; }
+  .report-kpi { grid-template-columns: 1fr 1fr; }
+  .overlay {
+    display: block; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 90;
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--transition);
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <div class="logo">My FinLab</div>
+    <div class="logo-sub">Financial Statement Mastery</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="showSection('learn')"><span class="nav-icon">📖</span> 오늘의 학습</div>
+    <div class="nav-item" onclick="showSection('review')"><span class="nav-icon">🔁</span> 오답 복습 <span class="nav-badge" id="review-badge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showSection('progress')"><span class="nav-icon">📊</span> 주간 리포트</div>
+    <div class="nav-item" onclick="showSection('concepts')"><span class="nav-icon">🧠</span> 개념 이해도</div>
+    <div class="nav-item" onclick="showSection('history')"><span class="nav-icon">🗓</span> 학습 이력</div>
+    <div class="nav-item" onclick="showSection('roadmap')"><span class="nav-icon">🗺</span> 학습 로드맵</div>
+    <div class="nav-item" onclick="showSection('settings')"><span class="nav-icon">⚙️</span> 설정 / 동기화</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="stat-mini"><span class="stat-mini-label">총 풀이</span><span class="stat-mini-val" id="sb-total">0</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">정답률</span><span class="stat-mini-val" id="sb-acc">—</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">오늘</span><span class="stat-mini-val" id="sb-today">0</span></div>
+    <div class="stat-mini"><span class="stat-mini-label">전체 진도</span><span class="stat-mini-val" id="sb-pct">0%</span></div>
+    <div class="streak" id="sb-streak">🔥 연속 0일</div>
+    <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);letter-spacing:.3px;">© Haji Lee · <a href="mailto:haji200@gmail.com" style="color:var(--text3);text-decoration:none;">haji200@gmail.com</a></div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <!-- topbar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-left">
+        <div class="topbar-title" id="tb-title">오늘의 학습</div>
+        <div class="topbar-sub" id="tb-sub">Phase 믹스 · 시사 연계 · 기업 진단 훈련</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="more-btn" onclick="moreProblems()" style="display:none">＋ 더 풀기</button>
+    </div>
+  </div>
+
+  <!-- tabs (learn section only) -->
+  <div class="tabs" id="tab-bar">
+    <div class="tab active" id="tab-quiz" onclick="showTab('quiz')">문제 풀이</div>
+    <div class="tab" id="tab-chat" onclick="showTab('chat')">파생 질문</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ─── LEARN ─── -->
+    <div class="section active" id="sec-learn">
+      <div class="goal-card">
+        <div class="goal-title">🎯 최종 목표</div>
+        <div class="goal-text">재무제표만으로 이직 대상 기업의 <strong style="color:var(--text)">재무 건강 진단 + 미래 Forecast</strong>가 가능한 수준.<br>수익성·안정성·성장성·현금 창출력을 스스로 분석하고, 향후 1~2년 실적을 추정할 수 있는 재무 리터러시.</div>
+      </div>
+
+      <!-- quiz tab -->
+      <div id="tab-quiz-content">
+        <!-- diagnosis -->
+        <div id="diag-area" style="display:none">
+          <div class="card">
+            <div class="card-title">📋 입문 수준 진단</div>
+            <div class="card-sub">3가지 질문으로 맞춤 학습 난이도를 설정합니다</div>
+            <div id="diag-inner"></div>
+          </div>
+        </div>
+        <!-- loading -->
+        <div id="quiz-loading" style="display:none">
+          <div class="loading"><div class="loading-text">문제 생성 중</div><div class="dots"><span>●</span><span>●</span><span>●</span></div></div>
+        </div>
+        <!-- quiz -->
+        <div id="quiz-area" style="display:none">
+          <div class="card" id="q-card">
+            <div class="q-meta" id="q-meta"></div>
+            <div class="q-context" id="q-ctx" style="display:none">
+              <div class="q-context-label">📰 시사 연계</div>
+              <div class="q-context-text" id="q-ctx-text"></div>
+            </div>
+            <div class="q-text" id="q-text"></div>
+            <div class="opts" id="q-opts"></div>
+            <div class="result" id="q-result">
+              <div class="result-verdict" id="q-verdict"></div>
+              <div class="explain-box">
+                <div class="section-label">해설</div>
+                <div id="q-explain"></div>
+              </div>
+              <div id="q-journal-wrap" style="display:none">
+                <div class="section-label">분개</div>
+                <table class="journal" id="q-journal">
+                  <thead><tr><th>구분</th><th>계정과목</th><th style="text-align:right">금액</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="know-box">
+                <div class="section-label">핵심 개념</div>
+                <div id="q-know"></div>
+              </div>
+              <div class="action-row" id="q-actions"></div>
+            </div>
+          </div>
+          <div class="quiz-nav">
+            <div class="q-dots" id="q-dots"></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:13px;color:var(--text3)" id="q-prog"></span>
+              <button class="btn btn-ghost" id="prev-btn" onclick="navQ(-1)">← 이전</button>
+              <button class="btn btn-primary" id="next-btn" onclick="navQ(1)" disabled>다음 →</button>
+            </div>
+          </div>
+        </div>
+        <div class="more-wrap" id="more-wrap" style="display:none">
+          <button class="btn btn-ghost" onclick="moreProblems()">오늘 더 학습하기 ＋</button>
+        </div>
+      </div>
+
+      <!-- chat tab -->
+      <div id="tab-chat-content" style="display:none">
+        <div class="card">
+          <div class="card-title">파생 질문</div>
+          <div class="card-sub" id="chat-ctx-label">방금 푼 문제 또는 재무회계 개념에 대해 자유롭게 질문하세요</div>
+          <div class="chat-history" id="chat-history"></div>
+          <div class="chat-row">
+            <input class="chat-input" id="chat-input" placeholder="예: 영업이익과 EBITDA의 차이는?" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"/>
+            <button class="btn btn-primary" onclick="sendChat()">전송</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── REVIEW ─── -->
+    <div class="section" id="sec-review">
+      <div class="card">
+        <div class="card-title">🔁 오답 복습</div>
+        <div class="card-sub">틀린 개념은 다른 문제로 재출제 — 완전히 이해할 때까지</div>
+        <div id="review-list"></div>
+      </div>
+    </div>
+
+    <!-- ─── PROGRESS ─── -->
+    <div class="section" id="sec-progress">
+      <div class="report-kpi" id="kpi-row"></div>
+      <div class="card">
+        <div class="card-title">Phase별 진도</div>
+        <div class="phase-grid" id="phase-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">이번 주 AI 진단 리포트</div>
+        <div class="card-sub">칭찬 없이 갭(Gap) 중심으로 — 지금 수준과 목표 사이의 거리</div>
+        <div id="report-body">
+          <button class="btn btn-primary" onclick="genReport()">리포트 생성</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CONCEPTS ─── -->
+    <div class="section" id="sec-concepts">
+      <div class="card">
+        <div class="card-title">🧠 Phase별 개념 이해도 맵</div>
+        <div class="card-sub">최종 목표 대비 각 개념의 현재 숙련도. 빨간색 = 즉시 보강 필요</div>
+        <div class="radar-wrap">
+          <canvas id="radar-chart"></canvas>
+        </div>
+      </div>
+      <div class="card" id="concept-detail-card">
+        <div class="card-title">개념별 세부 이해도</div>
+        <div id="concept-map"></div>
+      </div>
+    </div>
+
+    <!-- ─── HISTORY ─── -->
+    <div class="section" id="sec-history">
+      <div class="card">
+        <div class="card-title">🗓 학습 이력</div>
+        <div class="card-sub">언제, 얼마나, 어떤 성과로 학습했는지의 기록</div>
+        <div id="history-chart-wrap" style="height:160px;margin-bottom:16px">
+          <canvas id="history-chart"></canvas>
+        </div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+
+    <!-- ─── SETTINGS ─── -->
+    <!-- ─── ROADMAP ─── -->
+    <div class="section" id="sec-roadmap">
+      <!-- header -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(201,169,110,0.07) 0%,rgba(91,143,212,0.04) 100%);border-color:rgba(201,169,110,0.22);margin-bottom:16px">
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">My FinLab 학습 로드맵</div>
+        <div style="font-size:14px;color:var(--text2);line-height:1.6">재무제표만으로 이직 대상 기업의 <strong style="color:var(--gold)">재무 건강 진단 + Forecast</strong>가 가능한 수준까지<br>4단계 비선형 학습 — 매일 Phase가 섞인 문제로 균형 있게 성장</div>
+      </div>
+
+      <!-- SVG roadmap -->
+      <div class="card" style="padding:24px 20px">
+        <svg width="100%" viewBox="0 0 760 680" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;display:block;margin:0 auto">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="#4a4860" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- ── PHASE 1 ── -->
+          <rect x="20" y="20" width="720" height="130" rx="12" fill="rgba(155,127,212,0.08)" stroke="rgba(155,127,212,0.35)" stroke-width="1"/>
+          <rect x="20" y="20" width="4" height="130" rx="2" fill="#9b7fd4"/>
+          <text x="42" y="50" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#9b7fd4" letter-spacing="1">PHASE 1</text>
+          <text x="42" y="70" font-family="Pretendard,-apple-system,sans-serif" font-size="16" font-weight="700" fill="#e2e0da">회계의 언어 익히기</text>
+          <text x="42" y="89" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6a6870">약 3주 · 하루 2문제 · ★☆☆☆☆~★★☆☆☆</text>
+          <!-- tags -->
+          <rect x="42" y="100" width="120" height="26" rx="5" fill="rgba(155,127,212,0.15)" stroke="rgba(155,127,212,0.3)" stroke-width="0.8"/>
+          <text x="102" y="117" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#b09fd4" text-anchor="middle">차변·대변 원리</text>
+          <rect x="172" y="100" width="120" height="26" rx="5" fill="rgba(155,127,212,0.15)" stroke="rgba(155,127,212,0.3)" stroke-width="0.8"/>
+          <text x="232" y="117" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#b09fd4" text-anchor="middle">5대 계정과목</text>
+          <rect x="302" y="100" width="100" height="26" rx="5" fill="rgba(155,127,212,0.15)" stroke="rgba(155,127,212,0.3)" stroke-width="0.8"/>
+          <text x="352" y="117" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#b09fd4" text-anchor="middle">기초 분개</text>
+          <rect x="412" y="100" width="140" height="26" rx="5" fill="rgba(155,127,212,0.15)" stroke="rgba(155,127,212,0.3)" stroke-width="0.8"/>
+          <text x="482" y="117" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#b09fd4" text-anchor="middle">자산 vs 비용 구분</text>
+
+          <!-- arrow 1→2 -->
+          <line x1="380" y1="150" x2="380" y2="178" stroke="#4a4860" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+          <!-- ── PHASE 2 ── -->
+          <rect x="20" y="180" width="720" height="130" rx="12" fill="rgba(77,190,150,0.08)" stroke="rgba(77,190,150,0.35)" stroke-width="1"/>
+          <rect x="20" y="180" width="4" height="130" rx="2" fill="#4dbe96"/>
+          <text x="42" y="210" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#4dbe96" letter-spacing="1">PHASE 2</text>
+          <text x="42" y="230" font-family="Pretendard,-apple-system,sans-serif" font-size="16" font-weight="700" fill="#e2e0da">재무제표 3종 구조 이해</text>
+          <text x="42" y="249" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6a6870">약 4주 · 하루 2~3문제 · ★★☆☆☆~★★★☆☆</text>
+          <rect x="42" y="260" width="130" height="26" rx="5" fill="rgba(77,190,150,0.12)" stroke="rgba(77,190,150,0.3)" stroke-width="0.8"/>
+          <text x="107" y="277" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6dc8a8" text-anchor="middle">손익계산서(P&amp;L)</text>
+          <rect x="182" y="260" width="130" height="26" rx="5" fill="rgba(77,190,150,0.12)" stroke="rgba(77,190,150,0.3)" stroke-width="0.8"/>
+          <text x="247" y="277" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6dc8a8" text-anchor="middle">대차대조표(B/S)</text>
+          <rect x="322" y="260" width="130" height="26" rx="5" fill="rgba(77,190,150,0.12)" stroke="rgba(77,190,150,0.3)" stroke-width="0.8"/>
+          <text x="387" y="277" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6dc8a8" text-anchor="middle">현금흐름표(C/F)</text>
+          <rect x="462" y="260" width="120" height="26" rx="5" fill="rgba(77,190,150,0.12)" stroke="rgba(77,190,150,0.3)" stroke-width="0.8"/>
+          <text x="522" y="277" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6dc8a8" text-anchor="middle">재무비율 기초</text>
+
+          <!-- arrow 2→3 -->
+          <line x1="380" y1="310" x2="380" y2="338" stroke="#4a4860" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+          <!-- ── PHASE 3 ── -->
+          <rect x="20" y="340" width="720" height="150" rx="12" fill="rgba(201,169,110,0.08)" stroke="rgba(201,169,110,0.35)" stroke-width="1"/>
+          <rect x="20" y="340" width="4" height="150" rx="2" fill="#c9a96e"/>
+          <text x="42" y="370" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#c9a96e" letter-spacing="1">PHASE 3</text>
+          <text x="42" y="390" font-family="Pretendard,-apple-system,sans-serif" font-size="16" font-weight="700" fill="#e2e0da">실전 분석 &amp; 회계처리 판단</text>
+          <text x="42" y="409" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6a6870">약 5주 · 하루 3문제 (분석형 2 + 처리형 1) · ★★★☆☆~★★★★☆</text>
+          <rect x="42" y="420" width="130" height="26" rx="5" fill="rgba(201,169,110,0.12)" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+          <text x="107" y="437" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#d4b880" text-anchor="middle">DART 공시 독해</text>
+          <rect x="182" y="420" width="140" height="26" rx="5" fill="rgba(201,169,110,0.12)" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+          <text x="252" y="437" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#d4b880" text-anchor="middle">시계열 추세 분석</text>
+          <rect x="332" y="420" width="140" height="26" rx="5" fill="rgba(201,169,110,0.12)" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+          <text x="402" y="437" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#d4b880" text-anchor="middle">회계처리 판단</text>
+          <rect x="482" y="420" width="160" height="26" rx="5" fill="rgba(201,169,110,0.12)" stroke="rgba(201,169,110,0.3)" stroke-width="0.8"/>
+          <text x="562" y="437" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#d4b880" text-anchor="middle">발생주의·선급·미지급</text>
+          <!-- news badge -->
+          <rect x="42" y="452" width="90" height="22" rx="4" fill="rgba(212,148,42,0.15)" stroke="rgba(212,148,42,0.4)" stroke-width="0.8"/>
+          <text x="87" y="467" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#d4942a" text-anchor="middle">📰 시사 연계</text>
+          <rect x="142" y="452" width="110" height="22" rx="4" fill="rgba(91,143,212,0.12)" stroke="rgba(91,143,212,0.3)" stroke-width="0.8"/>
+          <text x="197" y="467" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#5b8fd4" text-anchor="middle">SI 자회사 맥락</text>
+
+          <!-- arrow 3→4 -->
+          <line x1="380" y1="490" x2="380" y2="518" stroke="#4a4860" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+          <!-- ── PHASE 4 ── -->
+          <rect x="20" y="520" width="720" height="140" rx="12" fill="rgba(224,88,88,0.08)" stroke="rgba(224,88,88,0.35)" stroke-width="1"/>
+          <rect x="20" y="520" width="4" height="140" rx="2" fill="#e05858"/>
+          <text x="42" y="550" font-family="Pretendard,-apple-system,sans-serif" font-size="11" font-weight="700" fill="#e05858" letter-spacing="1">PHASE 4  ·  최종 목표</text>
+          <text x="42" y="570" font-family="Pretendard,-apple-system,sans-serif" font-size="16" font-weight="700" fill="#e2e0da">기업 진단 &amp; Forecast</text>
+          <text x="42" y="589" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#6a6870">지속 유지 · 하루 2~3문제 · ★★★★☆~★★★★★</text>
+          <rect x="42" y="600" width="120" height="26" rx="5" fill="rgba(224,88,88,0.12)" stroke="rgba(224,88,88,0.3)" stroke-width="0.8"/>
+          <text x="102" y="617" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#e08080" text-anchor="middle">ROE·ROA·EBITDA</text>
+          <rect x="172" y="600" width="130" height="26" rx="5" fill="rgba(224,88,88,0.12)" stroke="rgba(224,88,88,0.3)" stroke-width="0.8"/>
+          <text x="237" y="617" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#e08080" text-anchor="middle">기업 건강 진단</text>
+          <rect x="312" y="600" width="120" height="26" rx="5" fill="rgba(224,88,88,0.12)" stroke="rgba(224,88,88,0.3)" stroke-width="0.8"/>
+          <text x="372" y="617" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#e08080" text-anchor="middle">재무 Forecast</text>
+          <rect x="442" y="600" width="160" height="26" rx="5" fill="rgba(224,88,88,0.12)" stroke="rgba(224,88,88,0.3)" stroke-width="0.8"/>
+          <text x="522" y="617" font-family="Pretendard,-apple-system,sans-serif" font-size="12" fill="#e08080" text-anchor="middle">SI 자회사 특화 분석</text>
+
+          <!-- goal star -->
+          <text x="700" y="580" font-family="Pretendard,-apple-system,sans-serif" font-size="28" text-anchor="middle">🎯</text>
+          <text x="700" y="598" font-family="Pretendard,-apple-system,sans-serif" font-size="10" fill="#e05858" text-anchor="middle" font-weight="700">TARGET</text>
+        </svg>
+      </div>
+
+      <!-- 설계 원칙 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">📐 설계 원칙</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:var(--bg3);border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">비선형 학습</div>
+            <div style="font-size:14px;color:var(--text2)">Phase 순서 상관없이 매일 1~4 혼합 문제로 균형 있게 성장</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">시사 연계</div>
+            <div style="font-size:14px;color:var(--text2)">최근 1~2개월 실제 기업 이슈를 문제에 반영해 현실 감각 훈련</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">오답 반복</div>
+            <div style="font-size:14px;color:var(--text2)">틀린 개념은 다른 상황으로 재출제. 완전히 이해할 때까지 반복</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px">냉정한 진단</div>
+            <div style="font-size:14px;color:var(--text2)">칭찬 없이 갭 중심. 지금 수준에서 뭘 못 보는지 정확히 알려줌</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);text-align:right;font-size:12px;color:var(--text3)">
+          © Haji Lee · <a href="mailto:haji200@gmail.com" style="color:var(--text3)">haji200@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <!-- ─── SETTINGS ─── -->
+    <div class="section" id="sec-settings">
+      <div class="card">
+        <div class="card-title">⚙️ Notion 동기화 설정</div>
+        <div class="card-sub">집·회사·모바일 어디서든 학습 이력이 이어집니다</div>
+        <div class="setup-wrap">
+          <div class="setup-step">
+            <div class="setup-num">1</div>
+            <div class="setup-body">
+              <div class="setup-step-title">Notion Integration 토큰</div>
+              <div class="setup-step-desc"><a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--gold)">notion.so/my-integrations</a> → 새 Integration 생성 → Internal Token 복사</div>
+              <input class="setup-input" id="notion-token" placeholder="secret_xxxxxxxxxxxxxxxxxxxxxxxx" />
+            </div>
+          </div>
+          <div class="setup-step">
+            <div class="setup-num">2</div>
+            <div class="setup-body">
+              <div class="setup-step-title">Database ID</div>
+              <div class="setup-step-desc">Notion 페이지에서 테이블 DB 생성 → Integration 연결 → URL에서 32자리 ID 복사<br><span style="color:var(--text3);font-size:13px">notion.so/[여기32자리]?v=...</span></div>
+              <input class="setup-input" id="notion-dbid" placeholder="32자리 Database ID" />
+            </div>
+          </div>
+          <div class="setup-step">
+            <div class="setup-num">3</div>
+            <div class="setup-body">
+              <div class="setup-step-title">연결 테스트 및 저장</div>
+              <div class="setup-step-desc">저장하면 이후 모든 학습이 Notion에 자동 기록됩니다</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn btn-primary" onclick="saveNotionConfig()">저장 및 연결</button>
+                <button class="btn btn-ghost" onclick="testNotionConnection()">연결 테스트</button>
+              </div>
+              <div id="notion-status" style="margin-top:8px;font-size:14px;color:var(--text3)"></div>
+            </div>
+          </div>
+          <hr class="card-divider">
+          <div class="setup-step-title" style="margin-bottom:8px">데이터 관리</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="exportData()">📥 JSON 내보내기</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📤 JSON 불러오기</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+            <button class="btn btn-danger" onclick="resetData()">초기화</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Claude API 키</div>
+        <div class="card-sub">문제 생성 및 AI 분석에 사용됩니다 (브라우저 내 저장, 서버 전송 없음)</div>
+        <input class="setup-input" id="api-key-input" placeholder="sk-ant-..." style="margin-bottom:10px"/>
+        <button class="btn btn-primary" onclick="saveApiKey()">저장</button>
+        <div id="api-key-status" style="margin-top:8px;font-size:14px;color:var(--text3)"></div>
+      </div>
+    </div><!-- /sec-settings -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+const DEFAULT_STATE = {
+  diagnosed: false, diagStep: 0, diagAns: [],
+  userLevel: 1,
+  userProfile: {},
+  questions: [], answered: [], curQ: 0,
+  wrongQ: [],
+  allStats: { total: 0, correct: 0 },
+  todayStats: { total: 0, correct: 0 },
+  streakDays: 1,
+  lastStudyDate: null,
+  studyHistory: [],   // [{date, sessions:[{start,end,total,correct,phases}]}]
+  conceptScores: {    // concept key → {attempts, correct}
+    // Phase 1
+    'debit_credit': {a:0,c:0},
+    'five_accounts': {a:0,c:0},
+    'basic_journal': {a:0,c:0},
+    'asset_expense': {a:0,c:0},
+    // Phase 2
+    'pl_structure': {a:0,c:0},
+    'bs_structure': {a:0,c:0},
+    'cf_structure': {a:0,c:0},
+    'ratios_basic': {a:0,c:0},
+    // Phase 3
+    'dart_reading': {a:0,c:0},
+    'timeseries': {a:0,c:0},
+    'accounting_judgment': {a:0,c:0},
+    'accrual': {a:0,c:0},
+    // Phase 4
+    'roe_roa_ebitda': {a:0,c:0},
+    'company_diagnosis': {a:0,c:0},
+    'forecast': {a:0,c:0},
+    'industry_analysis': {a:0,c:0},
+  },
+  notionToken: '',
+  notionDbId: '',
+  apiKey: '',
+  sessionStart: null,
+  chatHistory: [],
+  phaseProgress: {p1:5,p2:2,p3:0,p4:0},
+};
+
+let S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+function save() {
+  try { localStorage.setItem('acct_v2', JSON.stringify(S)); } catch(e){}
+  syncToNotion();
+}
+function load() {
+  try {
+    const d = localStorage.getItem('acct_v2');
+    if (d) {
+      const parsed = JSON.parse(d);
+      S = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+    }
+  } catch(e){}
+}
+
+// ════════════════════════════════════════
+// API
+// ════════════════════════════════════════
+async function callClaude(messages, system) {
+  const key = S.apiKey || '';
+  const headers = { 'Content-Type': 'application/json' };
+  if (key) headers['x-api-key'] = key;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: system || '',
+      messages,
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content?.map(b=>b.text||'').join('') || '';
+}
+
+// ════════════════════════════════════════
+// SYSTEM PROMPTS
+// ════════════════════════════════════════
+function buildSysPrompt(){
+  const p=S.userProfile||{};
+  const profileCtx=p.companySize?`
+학습자 프로필:
+- 회사 규모: ${p.companySize}
+- 공시 여부: ${p.listed||'미입력'}
+- 자회사 여부: ${p.subsidiary||'미입력'}
+- 업종/업태: ${p.industry||'미입력'}
+- 주요 활용 목적: ${p.role||'미입력'}
+- 특이사항: ${p.memo||'없음'}`:'';
+  return `당신은 재무회계 학습 AI입니다.
+최종 목표: 재무제표만으로 이직 대상 기업의 재무 건강 진단 + 1~2년 Forecast.
+${profileCtx}
+
+최근 주요 기업 이슈 (문제 연계 활용):
+- SK하이닉스: HBM 초호황, 영업이익률 30%+, 설비투자 급증으로 FCF 압박
+- 이마트: 적자 지속, 부동산 자산 매각으로 유동성 확보, 부채비율 상승
+- 네이버/카카오: 광고 정체, AI 투자비 급증으로 영업레버리지 역작용
+- HD현대/한화오션: 수주잔고 역대 최고, 진행기준 매출인식 이슈
+- 중소 IT서비스업: 인건비 비중 70%+, 공공 프로젝트 원가율 95%+ 적자
+
+출력 규칙 (반드시 준수):
+- Phase 1·2: 반드시 객관식 (options 4개, answer 0~3)
+- Phase 3: 객관식·주관식 중 AI가 판단해서 선택 (복잡한 분석 → 주관식)
+- Phase 4: 반드시 주관식 + 재무제표/환경자료 함께 제공 + 서술형 답변 유도
+
+JSON 배열만 출력. 마크다운 없이:
+[{
+  "type": "분析형|처리형",
+  "phase": 1~4,
+  "difficulty": 1~5,
+  "isSubjective": false 또는 true,
+  "conceptKey": "debit_credit|five_accounts|basic_journal|asset_expense|pl_structure|bs_structure|cf_structure|ratios_basic|dart_reading|timeseries|accounting_judgment|accrual|roe_roa_ebitda|company_diagnosis|forecast|industry_analysis",
+  "news": "시사 연계 한줄 또는 null",
+  "dataTable": "Phase3·4 주관식 전용: 재무제표·환경자료 텍스트 표 (없으면 null)",
+  "question": "문제 텍스트 (Phase4는 자료 분석 후 기업 상태·Forecast를 서술하라는 형식)",
+  "options": ["A","B","C","D"] 또는 null (주관식이면 null),
+  "answer": 0~3 또는 null (주관식이면 null),
+  "scoringCriteria": "주관식 전용: 채점 핵심 포인트 3~5개 (객관식이면 null)",
+  "explanation": "해설 냉정하게 300자 이내",
+  "journal": [{"side":"차변","account":"계정","amount":"금액"}] 또는 null,
+  "knowledge": "파생 핵심 개념 150자 이내"
+}]`;
+}
+
+const SYS_QUIZ = `dummy`; // legacy compat - 아래에서 buildSysPrompt() 사용
+
+// ════════════════════════════════════════
+// QUESTION GENERATION
+// ════════════════════════════════════════
+async function generateQuestions(count=3, includeReview=true) {
+  showQuizState('loading');
+  const lvlDesc = ['','완전 입문(차변·대변 헷갈림 단계)','초급(기본 분개 가능, 재무제표 구조 학습)','중급(재무제표 읽기, 분석·판단 연습)'][S.userLevel];
+  const reviewCtx = includeReview && S.wrongQ.length
+    ? `\n반드시 포함: 이전 오답 개념 재출제 — ${S.wrongQ.slice(0,3).map(w=>w.concept).join(', ')}`
+    : '';
+  const p=S.userProfile||{};
+  const industryCtx=p.industry?`학습자 업종: ${p.industry}`:'';
+  const purposeCtx=p.role?`주요 목적: ${p.role}`:'';
+  const prompt = `수준: ${lvlDesc}${reviewCtx}
+${industryCtx} ${purposeCtx}
+문제 ${count}개 생성 (반드시 아래 규칙 준수):
+- Phase 1 문제 1개: 객관식 (isSubjective:false)
+- Phase 2 문제 1개: 객관식 (isSubjective:false)
+- Phase 3 문제 1개: 객관식 또는 주관식 (복잡한 분析이면 isSubjective:true, dataTable 포함)
+- count가 4 이상이면 Phase 4 문제 1개 추가: 반드시 주관식(isSubjective:true) + 실제 재무제표 수치 포함 dataTable 필수
+- 시사 연계 최소 1개, 학습자 프로필 업종/목적 맥락 반영
+- 난이도 수준 ${S.userLevel}에 맞게
+JSON 배열만 출력.`;
+
+  try {
+    const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt());
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const arr = JSON.parse(clean.slice(clean.indexOf('['), clean.lastIndexOf(']')+1));
+    S.questions = arr;
+    S.answered = Array(arr.length).fill(null);
+    S.curQ = 0;
+    save();
+    showQuizState('quiz');
+    renderQ(0);
+    updateSidebar();
+    document.getElementById('more-wrap').style.display = 'none';
+  } catch(e) {
+    showQuizState('quiz');
+    document.getElementById('q-text').textContent = '문제 생성 오류: ' + e.message;
+  }
+}
+
+// ════════════════════════════════════════
+// RENDER QUESTION
+// ════════════════════════════════════════
+function renderQ(i) {
+  const q = S.questions[i];
+  if (!q) return;
+
+  // meta
+  const meta = document.getElementById('q-meta');
+  const stars = [1,2,3,4,5].map(n=>`<span class="star ${n<=q.difficulty?'on':'off'}">★</span>`).join('');
+  meta.innerHTML = `
+    <span class="badge ${q.type==='분석형'?'b-analysis':'b-processing'}">${q.type}</span>
+    <span class="badge b-p${q.phase}">Phase ${q.phase}</span>
+    <span class="stars">${stars}</span>
+    ${q.news?'<span class="badge b-news">시사</span>':''}
+    ${S.wrongQ.find(w=>w.q===q.question)?'<span class="badge b-review">복습</span>':''}
+  `;
+
+  // news
+  if (q.news) {
+    document.getElementById('q-ctx').style.display='block';
+    document.getElementById('q-ctx-text').textContent=q.news;
+  } else document.getElementById('q-ctx').style.display='none';
+
+  document.getElementById('q-text').textContent = q.question;
+
+  // options or subjective
+  const optsEl = document.getElementById('q-opts');
+  optsEl.innerHTML='';
+  if(q.isSubjective){
+    // subjective input
+    const answered = S.answered[i];
+    const alreadyDone = answered !== null;
+    const scoreInfo = alreadyDone && answered.score !== undefined
+      ? `<div style="margin-top:10px;padding:10px 14px;border-radius:8px;background:${answered.score>=70?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${answered.score>=70?'rgba(77,190,150,.3)':'rgba(212,148,42,.3)'}">`
+        +`<span style="font-size:15px;font-weight:800;color:${answered.score>=70?'var(--green)':'var(--amber)'}">${answered.score}점 / 100점</span>`
+        +`<span style="font-size:13px;color:var(--text2);margin-left:10px">${answered.score>=80?'우수':'보강 필요'}</span></div>`
+      : '';
+    optsEl.innerHTML=`
+      ${q.dataTable?`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13px;font-family:monospace;white-space:pre-line;color:var(--text2);line-height:1.7">${esc(q.dataTable)}</div>`:''}
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">서술형 답변 (글자 수 제한 없음)</div>
+      <textarea id="subj-input-${i}" placeholder="분석한 내용을 자세히 서술해 주세요. 기업의 현재 상태, 주요 지표 해석, 향후 Forecast 등을 포함하면 좋습니다." ${alreadyDone?'disabled':''}
+        style="width:100%;min-height:180px;background:var(--bg3);border:1px solid ${alreadyDone?'var(--border)':'var(--border2)'};border-radius:8px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font);outline:none;resize:vertical;line-height:1.7">${alreadyDone?esc(answered.text||''):''}</textarea>
+      ${scoreInfo}
+      ${!alreadyDone?`<div style="margin-top:10px"><button class="btn btn-primary" onclick="submitSubjective(${i})">제출 및 AI 채점 →</button></div>`:''}
+    `;
+  } else {
+    q.options.forEach((o,j)=>{
+      const d=document.createElement('div');
+      d.className='opt'+(S.answered[i]!==null?' disabled':'');
+      d.id='opt-'+j;
+      d.innerHTML=`<div class="opt-key">${'ABCD'[j]}</div><div class="opt-text">${esc(o)}</div>`;
+      if(S.answered[i]===null) d.onclick=()=>pickAnswer(j,i);
+      optsEl.appendChild(d);
+    });
+  }
+
+  // result
+  const rp=document.getElementById('q-result');
+  if(S.answered[i]!==null){
+    rp.classList.add('show');
+    showResult(i);
+    applyOptColors(i);
+  } else rp.classList.remove('show');
+
+  // nav
+  updateDots();
+  document.getElementById('q-prog').textContent=`${i+1} / ${S.questions.length}`;
+  document.getElementById('prev-btn').disabled=(i===0);
+  document.getElementById('next-btn').disabled=(S.answered[i]===null||i===S.questions.length-1);
+}
+
+function applyOptColors(i){
+  const q=S.questions[i];
+  if(q.isSubjective) return;
+  [0,1,2,3].forEach(k=>{
+    const el=document.getElementById('opt-'+k);
+    if(!el)return;
+    el.classList.add('disabled');
+    if(k===q.answer) el.classList.add('correct');
+    else if(k===S.answered[i]&&S.answered[i]!==q.answer) el.classList.add('wrong');
+  });
+}
+
+function showResult(i){
+  const q=S.questions[i];
+  const ans=S.answered[i];
+  const vEl=document.getElementById('q-verdict');
+
+  if(q.isSubjective){
+    const score=ans?.score??0;
+    vEl.className='result-verdict '+(score>=70?'verdict-correct':'verdict-wrong');
+    vEl.innerHTML=score>=80?`✓ ${score}점 — 핵심을 잘 파악했습니다`
+                 :score>=60?`△ ${score}점 — 부분 이해, 해설 꼼꼼히 확인하세요`
+                 :`✗ ${score}점 — 핵심 개념 재학습 필요`;
+  } else {
+    const correct=(ans===q.answer);
+    vEl.className='result-verdict '+(correct?'verdict-correct':'verdict-wrong');
+    vEl.innerHTML=correct?'✓ 정답':'✗ 오답 — 해설을 꼼꼼히 확인하세요';
+  }
+
+  document.getElementById('q-explain').innerHTML=esc(q.explanation);
+  document.getElementById('q-know').innerHTML=esc(q.knowledge);
+
+  if(q.journal?.length){
+    document.getElementById('q-journal-wrap').style.display='block';
+    const tb=document.querySelector('#q-journal tbody');
+    tb.innerHTML='';
+    q.journal.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="${r.side==='차변'?'j-dr':'j-cr'}">${r.side}</td><td class="${r.side==='차변'?'j-dr':'j-cr'}">${r.account}</td><td class="j-amt">${r.amount}</td>`;
+      tb.appendChild(tr);
+    });
+  } else document.getElementById('q-journal-wrap').style.display='none';
+
+  const needReview = q.isSubjective?(ans?.score??0)<70:ans!==q.answer;
+  document.getElementById('q-actions').innerHTML=`
+    <button class="btn btn-ghost" onclick="prefillChat()">💬 파생 질문</button>
+    ${needReview?`<button class="btn btn-ghost" onclick="addToReview(${i})">📌 복습 추가</button>`:''}
+  `;
+}
+
+function pickAnswer(j,i){
+  const q=S.questions[i];
+  if(q.isSubjective) return; // subjective handled by submitSubjective
+  S.answered[i]=j;
+  const correct=(j===q.answer);
+
+  S.allStats.total++;
+  S.todayStats.total++;
+  if(correct){S.allStats.correct++;S.todayStats.correct++;}
+  else {
+    if(!S.wrongQ.find(w=>w.q===q.question)){
+      S.wrongQ.push({q:q.question,concept:q.knowledge?.slice(0,40)||q.conceptKey,
+        phase:q.phase,type:q.type,conceptKey:q.conceptKey,wrongCount:1,
+        lastWrong:new Date().toLocaleDateString('ko-KR')});
+    } else S.wrongQ.find(w=>w.q===q.question).wrongCount++;
+  }
+
+  // concept score
+  if(q.conceptKey && S.conceptScores[q.conceptKey]){
+    S.conceptScores[q.conceptKey].a++;
+    if(correct) S.conceptScores[q.conceptKey].c++;
+  }
+
+  // phase progress
+  const pp=S.phaseProgress;
+  const delta=correct?3:1;
+  if(q.phase===1) pp.p1=Math.min(100,pp.p1+delta);
+  if(q.phase===2) pp.p2=Math.min(100,pp.p2+delta);
+  if(q.phase===3) pp.p3=Math.min(100,pp.p3+delta*1.3|0);
+  if(q.phase===4) pp.p4=Math.min(100,pp.p4+delta*1.6|0);
+
+  applyOptColors(i);
+  showResult(i);
+  document.getElementById('q-result').classList.add('show');
+  document.getElementById('next-btn').disabled=(i===S.questions.length-1);
+  updateDots();
+
+  // all done check
+  if(S.answered.every(a=>a!==null)) {
+    document.getElementById('more-wrap').style.display='block';
+    logStudySession();
+  }
+
+  save();
+  updateSidebar();
+  updateReviewBadge();
+}
+
+async function submitSubjective(i){
+  const q=S.questions[i];
+  const textEl=document.getElementById('subj-input-'+i);
+  const text=textEl?.value?.trim()||'';
+  if(!text){alert('답변을 입력해 주세요.');return;}
+
+  const btn=textEl.nextElementSibling?.querySelector('button');
+  if(btn){btn.disabled=true;btn.textContent='채점 중...';}
+
+  const criteria=q.scoringCriteria||'핵심 재무 지표 파악, 현재 상태 진단, 향후 방향 제시';
+  const sys=`재무회계 채점 AI. 학습자 서술형 답변을 채점합니다.
+채점 기준: ${criteria}
+원칙: 칭찬 없이 냉정하게. 누락된 핵심 포인트와 개선 방향을 구체적으로.
+반드시 JSON만 출력: {"score":0~100,"feedback":"채점 결과와 개선점 300자 이내"}`;
+
+  try{
+    const raw=await callClaude([{role:'user',content:`문제: ${q.question}
+
+학습자 답변:
+${text}`}],sys);
+    const clean=raw.replace(/\`\`\`json|\`\`\`/g,'').trim();
+    const result=JSON.parse(clean.slice(clean.indexOf('{'),clean.lastIndexOf('}')+1));
+    const score=Math.max(0,Math.min(100,result.score||0));
+
+    S.answered[i]={text,score,feedback:result.feedback};
+    const correct=score>=70;
+    S.allStats.total++;S.todayStats.total++;
+    if(correct){S.allStats.correct++;S.todayStats.correct++;}
+    else{
+      if(!S.wrongQ.find(w=>w.q===q.question)){
+        S.wrongQ.push({q:q.question,concept:q.knowledge?.slice(0,40)||q.conceptKey,
+          phase:q.phase,type:q.type,conceptKey:q.conceptKey,wrongCount:1,
+          lastWrong:new Date().toLocaleDateString('ko-KR')});
+      }
+    }
+    if(q.conceptKey&&S.conceptScores[q.conceptKey]){
+      S.conceptScores[q.conceptKey].a++;
+      if(correct)S.conceptScores[q.conceptKey].c++;
+    }
+    const pp=S.phaseProgress;
+    const delta=correct?4:1;
+    if(q.phase===3)pp.p3=Math.min(100,pp.p3+delta);
+    if(q.phase===4)pp.p4=Math.min(100,pp.p4+delta*2|0);
+
+    // show feedback box
+    const feedbackHtml=`<div style="margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-bottom:8px">AI 채점 결과</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">${esc(result.feedback)}</div>
+    </div>`;
+    const wrap=textEl.parentElement;
+    wrap.innerHTML=wrap.innerHTML+feedbackHtml;
+
+    document.getElementById('q-result').classList.add('show');
+    showResult(i);
+    document.getElementById('next-btn').disabled=(i===S.questions.length-1);
+    updateDots();
+    if(S.answered.every(a=>a!==null)){document.getElementById('more-wrap').style.display='block';logStudySession();}
+    save();updateSidebar();updateReviewBadge();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='제출 및 AI 채점 →';}
+    alert('채점 오류: '+e.message);
+  }
+}
+
+function addToReview(i){
+  const q=S.questions[i];
+  if(!S.wrongQ.find(w=>w.q===q.question)){
+    S.wrongQ.push({q:q.question,concept:q.knowledge?.slice(0,40)||'',
+      phase:q.phase,type:q.type,conceptKey:q.conceptKey,wrongCount:1,
+      lastWrong:new Date().toLocaleDateString('ko-KR')});
+    save(); updateReviewBadge();
+  }
+}
+
+// ════════════════════════════════════════
+// SESSION LOGGING
+// ════════════════════════════════════════
+function logStudySession(){
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('ko-KR');
+  const timeStr=now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  const start=S.sessionStart||timeStr;
+
+  let day=S.studyHistory.find(d=>d.date===dateStr);
+  if(!day){day={date:dateStr,sessions:[]};S.studyHistory.push(day);}
+  day.sessions.push({
+    start, end:timeStr,
+    total:S.todayStats.total,
+    correct:S.todayStats.correct,
+    phases:[...new Set(S.questions.map(q=>q.phase))]
+  });
+  S.sessionStart=null;
+  save();
+}
+
+// ════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════
+function navQ(d){
+  S.curQ=Math.max(0,Math.min(S.questions.length-1,S.curQ+d));
+  renderQ(S.curQ);
+}
+
+function updateDots(){
+  const dots=document.getElementById('q-dots');
+  dots.innerHTML=S.questions.map((_,i)=>{
+    let cls='q-dot';
+    if(i===S.curQ) cls+=' cur';
+    else if(S.answered[i]!==null){
+      const correct=(S.answered[i]===S.questions[i].answer);
+      cls+=correct?' done':' wrong-dot';
+    }
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+// MORE PROBLEMS
+// ════════════════════════════════════════
+function moreProblems(){
+  S.sessionStart=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  generateQuestions(3,true);
+}
+
+// ════════════════════════════════════════
+// CHAT
+// ════════════════════════════════════════
+function prefillChat(){
+  const q=S.questions[S.curQ];
+  document.getElementById('chat-input').value=`"${q?.question?.slice(0,30)}..." 관련해서 더 알고 싶어요`;
+  showTab('chat');
+  document.getElementById('chat-input').focus();
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim(); if(!msg)return;
+  inp.value='';
+  S.chatHistory.push({role:'user',content:msg});
+
+  const hist=document.getElementById('chat-history');
+  hist.innerHTML+=`<div class="chat-msg msg-user"><div class="msg-label">나</div>${esc(msg)}</div>`;
+  const aiDiv=document.createElement('div');
+  aiDiv.className='chat-msg msg-ai';
+  aiDiv.innerHTML=`<div class="msg-label">AI 튜터</div><div class="dots"><span>●</span><span>●</span><span>●</span></div>`;
+  hist.appendChild(aiDiv);
+  hist.scrollTop=hist.scrollHeight;
+
+  const curQ=S.questions[S.curQ];
+  const sys=`재무회계 튜터. 학습자: 경영지원부서장, HRD 전공, 삼성물산 재무 출신 CEO와 협업.
+현재 문제 맥락: ${curQ?.question||'없음'}
+원칙: 칭찬 없이 명확하게. 개념의 실무 적용(SI 자회사, 이직 대상 기업 진단) 중심.
+200자 이내로 답변. 부족한 부분은 직설적으로 지적.`;
+
+  try{
+    const reply=await callClaude(S.chatHistory.map(m=>({role:m.role,content:m.content})),sys);
+    S.chatHistory.push({role:'assistant',content:reply});
+    aiDiv.innerHTML=`<div class="msg-label">AI 튜터</div>${esc(reply)}`;
+  }catch(e){
+    aiDiv.innerHTML=`<div class="msg-label">AI 튜터</div>오류: ${e.message}`;
+  }
+  hist.scrollTop=hist.scrollHeight;
+}
+
+// ════════════════════════════════════════
+// REPORT
+// ════════════════════════════════════════
+async function genReport(){
+  const rEl=document.getElementById('report-body');
+  rEl.innerHTML=`<div class="loading"><div class="loading-text">분석 중</div><div class="dots"><span>●</span><span>●</span><span>●</span></div></div>`;
+
+  const pp=S.phaseProgress;
+  const total=Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
+  const acc=S.allStats.total?Math.round(S.allStats.correct/S.allStats.total*100):0;
+  const weakConcepts=Object.entries(S.conceptScores)
+    .filter(([,v])=>v.a>0)
+    .map(([k,v])=>({key:k,pct:Math.round(v.c/v.a*100)}))
+    .sort((a,b)=>a.pct-b.pct).slice(0,4);
+
+  const prompt=`학습자 데이터:
+전체 진도: ${total}% | 정답률: ${acc}% | 총 풀이: ${S.allStats.total}문제
+Phase: P1=${pp.p1}% P2=${pp.p2}% P3=${pp.p3}% P4=${pp.p4}%
+취약 개념 (정답률순): ${weakConcepts.map(w=>`${w.key}(${w.pct}%)`).join(', ')||'데이터 부족'}
+오답 누적: ${S.wrongQ.length}건
+
+최종 목표: 재무제표로 이직 대상 기업 재무 건강 진단 + 1~2년 Forecast.
+
+냉정한 주간 진단 리포트 작성 (400자 이내, 마크다운 없음):
+1. 현재 위치의 핵심 문제 (칭찬 없이)
+2. 목표까지 남은 가장 큰 격차 2가지 (구체적 개념명)
+3. 다음 주 반드시 해야 할 3가지 (우선순위 순)
+4. 지금 수준으로 이직 대상 기업 재무제표 보면 뭘 볼 수 있고 뭘 못 보는가`;
+
+  try{
+    const reply=await callClaude([{role:'user',content:prompt}],
+      '재무회계 학습 코치. 입바른 칭찬 금지. 격차와 액션 중심으로 냉정하게 진단.');
+    rEl.innerHTML=`<div class="assessment-box" style="white-space:pre-line">${esc(reply)}</div>`;
+  }catch(e){
+    rEl.innerHTML=`<div style="color:var(--red);font-size:15px">오류: ${e.message}</div>`;
+  }
+}
+
+// ════════════════════════════════════════
+// CONCEPT MAP & RADAR
+// ════════════════════════════════════════
+const CONCEPT_META = {
+  debit_credit:       {label:'차변·대변 원리', phase:1, color:'#9b7fd4'},
+  five_accounts:      {label:'5대 계정과목', phase:1, color:'#9b7fd4'},
+  basic_journal:      {label:'기초 분개', phase:1, color:'#9b7fd4'},
+  asset_expense:      {label:'자산 vs 비용 구분', phase:1, color:'#9b7fd4'},
+  pl_structure:       {label:'손익계산서 구조', phase:2, color:'#4dbe96'},
+  bs_structure:       {label:'대차대조표 구조', phase:2, color:'#4dbe96'},
+  cf_structure:       {label:'현금흐름표', phase:2, color:'#4dbe96'},
+  ratios_basic:       {label:'재무비율 기초', phase:2, color:'#4dbe96'},
+  dart_reading:       {label:'DART 공시 독해', phase:3, color:'#c9a96e'},
+  timeseries:         {label:'시계열 추세 분석', phase:3, color:'#c9a96e'},
+  accounting_judgment:{label:'회계처리 판단', phase:3, color:'#c9a96e'},
+  accrual:            {label:'발생주의·선급·미지급', phase:3, color:'#c9a96e'},
+  roe_roa_ebitda:     {label:'ROE·ROA·EBITDA', phase:4, color:'#e05858'},
+  company_diagnosis:  {label:'기업 건강 진단', phase:4, color:'#e05858'},
+  forecast:           {label:'재무 Forecast', phase:4, color:'#e05858'},
+  industry_analysis:  {label:'업종별 재무구조 분석', phase:4, color:'#e05858'},
+};
+
+function conceptPct(key){
+  const s=S.conceptScores[key];
+  if(!s||s.a===0) return S.phaseProgress['p'+CONCEPT_META[key].phase]*0.05|0; // seed from phase progress
+  return Math.round(s.c/s.a*100);
+}
+
+let radarChart=null, histChart=null;
+
+function renderConceptMap(){
+  const map=document.getElementById('concept-map');
+  const phases=[1,2,3,4];
+  const phaseLabels=['Phase 1 · 회계의 언어','Phase 2 · 재무제표 구조','Phase 3 · 실전 분석','Phase 4 · 기업 진단·Forecast'];
+
+  map.innerHTML=phases.map((p,pi)=>{
+    const concepts=Object.entries(CONCEPT_META).filter(([,m])=>m.phase===p);
+    return `<div style="margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase">${phaseLabels[pi]}</div>
+      ${concepts.map(([key,meta])=>{
+        const pct=conceptPct(key);
+        const color=pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';
+        const flag=pct<40?'🔴 즉시 보강':pct<70?'🟡 보강 필요':'🟢 양호';
+        return `<div class="concept-row">
+          <div class="concept-name">${meta.label}</div>
+          <div class="concept-bar-wrap">
+            <div class="concept-bar" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <div class="concept-pct" style="color:${color}">${pct}%</div>
+          <div class="concept-flag">${flag}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderRadar(){
+  const ctx=document.getElementById('radar-chart').getContext('2d');
+  const labels=Object.values(CONCEPT_META).map(m=>m.label);
+  const data=Object.keys(CONCEPT_META).map(k=>conceptPct(k));
+
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(ctx,{
+    type:'radar',
+    data:{
+      labels,
+      datasets:[{
+        label:'이해도 (%)',
+        data,
+        backgroundColor:'rgba(201,169,110,0.12)',
+        borderColor:'rgba(201,169,110,0.7)',
+        pointBackgroundColor:'rgba(201,169,110,0.9)',
+        pointRadius:3,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{r:{
+        min:0,max:100,
+        ticks:{stepSize:25,color:'rgba(255,255,255,0.3)',font:{size:9,family:'Pretendard'}},
+        grid:{color:'rgba(255,255,255,0.07)'},
+        angleLines:{color:'rgba(255,255,255,0.07)'},
+        pointLabels:{color:'rgba(255,255,255,0.5)',font:{size:10,family:'Pretendard'}},
+      }},
+      plugins:{legend:{display:false}},
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════════
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  if(!S.studyHistory.length){
+    list.innerHTML='<div style="color:var(--text3);font-size:15px;padding:16px 0">아직 기록이 없습니다.</div>';
+    renderHistoryChart([]);
+    return;
+  }
+  const sorted=[...S.studyHistory].reverse();
+  list.innerHTML=sorted.map(d=>`
+    <div class="history-item">
+      <div class="history-date">${d.date}</div>
+      <div class="history-detail">${d.sessions.map(s=>`${s.start}~${s.end} · Phase ${s.phases.join('·')}`).join(' / ')}</div>
+      <div class="history-stat">${d.sessions.reduce((a,s)=>a+s.total,0)}문제</div>
+    </div>`).join('');
+  renderHistoryChart(sorted.slice(0,14).reverse());
+}
+
+function renderHistoryChart(data){
+  const ctx=document.getElementById('history-chart').getContext('2d');
+  if(histChart) histChart.destroy();
+  if(!data.length){return;}
+  histChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:data.map(d=>d.date.slice(5)),
+      datasets:[{
+        label:'풀이 수',
+        data:data.map(d=>d.sessions.reduce((a,s)=>a+s.total,0)),
+        backgroundColor:'rgba(201,169,110,0.5)',
+        borderColor:'rgba(201,169,110,0.9)',
+        borderWidth:1, borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:10,family:'Pretendard'}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:10,family:'Pretendard'},stepSize:1}},
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// PROGRESS RENDER
+// ════════════════════════════════════════
+function renderProgress(){
+  const pp=S.phaseProgress;
+  const total=Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
+  const acc=S.allStats.total?Math.round(S.allStats.correct/S.allStats.total*100):0;
+
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi-card"><div class="kpi-val">${total}%</div><div class="kpi-label">전체 진도</div></div>
+    <div class="kpi-card"><div class="kpi-val">${acc}%</div><div class="kpi-label">정답률</div></div>
+    <div class="kpi-card"><div class="kpi-val">${S.allStats.total}</div><div class="kpi-label">총 풀이</div></div>
+  `;
+
+  const phases=[
+    {key:'p1',label:'Phase 1',sub:'차변·대변·분개 기초',color:'#9b7fd4'},
+    {key:'p2',label:'Phase 2',sub:'손익계산서·B/S·현금흐름',color:'#4dbe96'},
+    {key:'p3',label:'Phase 3',sub:'DART 분석·회계처리 판단',color:'#c9a96e'},
+    {key:'p4',label:'Phase 4',sub:'기업 진단·Forecast',color:'#e05858'},
+  ];
+  document.getElementById('phase-grid').innerHTML=phases.map(p=>{
+    const pct=pp[p.key];
+    return `<div class="phase-card">
+      <div class="pc-label">${p.label}</div>
+      <div class="pc-pct" style="color:${p.color}">${pct}%</div>
+      <div class="pc-bar phase-card-bar">
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
+      </div>
+      <div class="pc-note">${p.sub}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+// REVIEW
+// ════════════════════════════════════════
+function renderReview(){
+  const list=document.getElementById('review-list');
+  if(!S.wrongQ.length){
+    list.innerHTML='<div style="color:var(--text3);font-size:15px;padding:12px 0">오답이 없습니다.</div>';
+    return;
+  }
+  list.innerHTML=S.wrongQ.map((w,i)=>`
+    <div class="review-item" onclick="startReview(${i})">
+      <div class="review-q">${esc(w.q)}</div>
+      <div class="review-meta">
+        <span>Phase ${w.phase}</span><span>${w.type}</span>
+        <span style="color:var(--red)">오답 ${w.wrongCount}회</span>
+        <span>${w.lastWrong}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function startReview(idx){
+  const w=S.wrongQ[idx];
+  showSection('learn'); showTab('quiz');
+  showQuizState('loading');
+
+  const prompt=`취약 개념 재출제:
+원래 문제: "${w.q}"
+개념: ${w.concept}
+완전히 다른 상황·수치로 같은 개념 문제 1개 생성.
+JSON 배열 1개만 출력.`;
+
+  try{
+    const raw=await callClaude([{role:'user',content:prompt}],buildSysPrompt());
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const arr=JSON.parse(clean.slice(clean.indexOf('['),clean.lastIndexOf(']')+1));
+    S.questions=arr; S.answered=[null]; S.curQ=0;
+    save(); showQuizState('quiz'); renderQ(0);
+  }catch(e){showQuizState('quiz');}
+}
+
+function updateReviewBadge(){
+  const b=document.getElementById('review-badge');
+  if(S.wrongQ.length){b.style.display='';b.textContent=S.wrongQ.length;}
+  else b.style.display='none';
+}
+
+// ════════════════════════════════════════
+// DIAGNOSIS
+// ════════════════════════════════════════
+// ── 사전 질문 정의 ──
+// type: 'select'=객관식단일, 'text'=단답주관식
+const PROFILE_QS = [
+  {id:'companySize', type:'select', q:'소속 회사 규모는?',
+    opts:['스타트업 (50인 미만)','중소기업 (50~300인)','중견기업 (300~1000인)','대기업 (1000인 이상)','공공기관/공기업']},
+  {id:'listed', type:'select', q:'소속 회사의 공시 여부는?',
+    opts:['비상장 (공시 없음)','코스닥 상장','코스피 상장','공공기관(별도 결산공시)']},
+  {id:'subsidiary', type:'select', q:'소속 회사는 자회사 또는 계열사인가요?',
+    opts:['독립법인 (단독)','대기업 자회사/계열사','중견·중소 계열사','공공기관 자회사']},
+  {id:'industry', type:'text', q:'업종 또는 업태를 간단히 적어주세요.',
+    placeholder:'예: IT서비스(SI), 제조, 유통, 금융, 의료 등'},
+  {id:'role', type:'select', q:'재무회계 지식이 주로 필요한 상황은?',
+    opts:['CEO/임원 보고 및 소통','투자·이직 대상 기업 분석','실무 회계처리 판단','예산 수립 및 원가 분석','전반적으로 모두']},
+  {id:'memo', type:'text', q:'학습에서 특히 어렵거나 궁금한 점이 있으면 자유롭게 적어주세요. (선택)',
+    placeholder:'예: 현금흐름표가 왜 필요한지 모르겠다, 감가상각 개념이 헷갈린다 등'},
+];
+
+// ── 수준 진단 질문
+const LEVEL_QS = [
+  {q:'차변·대변의 역할을 어떻게 이해하고 있나요?',
+    opts:['전혀 모른다','자산 증가=차변은 알지만 적용이 헷갈림','5대 계정별 증감 방향을 대체로 안다']},
+  {q:'손익계산서에서 무엇을 읽을 수 있나요?',
+    opts:['매출이 있다는 정도','영업이익·순이익 구분은 하지만 분석은 어렵다','EBITDA, 영업레버리지 개념을 활용한다']},
+  {q:'재무제표를 혼자 보면?',
+    opts:['어디서 시작해야 할지 모른다','수치는 읽히지만 시사점 도출이 어렵다','핵심 비율을 계산하고 해석할 수 있다']},
+];
+
+let diagPhase='profile'; // 'profile' → 'level' → done
+let diagStep=0, diagAns=[], profileData={};
+
+function initDiag(){
+  diagPhase='profile'; diagStep=0; diagAns=[]; profileData={};
+  renderDiagStep();
+  showQuizState('diag');
+}
+
+function renderDiagStep(){
+  const inner=document.getElementById('diag-inner');
+  if(diagPhase==='profile'){
+    const pq=PROFILE_QS[diagStep];
+    const totalSteps=PROFILE_QS.length+LEVEL_QS.length;
+    const curStep=diagStep+1;
+    if(pq.type==='select'){
+      inner.innerHTML=`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">프로필 설정 ${curStep} / ${totalSteps}</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)">${pq.q}</div>
+        ${pq.opts.map((o,i)=>`<div class="diag-opt" onclick="selectProfile('${pq.id}','${o}',${i})">${o}</div>`).join('')}`;
+    } else {
+      inner.innerHTML=`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">프로필 설정 ${curStep} / ${totalSteps}</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)">${pq.q}</div>
+        <input class="setup-input" id="profile-text-input" placeholder="${pq.placeholder||''}" style="margin-bottom:12px"/>
+        <button class="btn btn-primary" onclick="submitProfileText('${pq.id}')">다음 →</button>`;
+    }
+  } else {
+    const lq=LEVEL_QS[diagStep];
+    const totalSteps=PROFILE_QS.length+LEVEL_QS.length;
+    const curStep=PROFILE_QS.length+diagStep+1;
+    inner.innerHTML=`
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">수준 진단 ${curStep} / ${totalSteps}</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text)">${lq.q}</div>
+      ${lq.opts.map((o,i)=>`<div class="diag-opt" onclick="selectLevel(${i})">${i+1}. ${o}</div>`).join('')}`;
+  }
+}
+
+function selectProfile(id, val, idx){
+  document.querySelectorAll('.diag-opt').forEach((el,i)=>el.classList.toggle('sel',i===idx));
+  profileData[id]=val;
+  setTimeout(advanceDiag, 300);
+}
+
+function submitProfileText(id){
+  const val=document.getElementById('profile-text-input')?.value?.trim()||'';
+  profileData[id]=val;
+  advanceDiag();
+}
+
+function selectLevel(val){
+  document.querySelectorAll('.diag-opt').forEach((el,i)=>el.classList.toggle('sel',i===val));
+  diagAns.push(val);
+  setTimeout(advanceDiag, 300);
+}
+
+function advanceDiag(){
+  diagStep++;
+  if(diagPhase==='profile' && diagStep>=PROFILE_QS.length){
+    diagPhase='level'; diagStep=0;
+    renderDiagStep();
+  } else if(diagPhase==='level' && diagStep>=LEVEL_QS.length){
+    finalizeDiag();
+  } else {
+    renderDiagStep();
+  }
+}
+
+function finalizeDiag(){
+  const sum=diagAns.reduce((a,b)=>a+b,0);
+  S.userLevel=sum<=2?1:sum<=5?2:3;
+  S.userProfile=profileData;
+  S.diagnosed=true;
+  S.sessionStart=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  save();
+  generateQuestions(3,false);
+}
+
+// ════════════════════════════════════════
+// NOTION SYNC
+// ════════════════════════════════════════
+async function syncToNotion(){
+  if(!S.notionToken||!S.notionDbId) return;
+  const today=new Date().toLocaleDateString('ko-KR');
+  const props={
+    '날짜':{date:{start:new Date().toISOString().slice(0,10)}},
+    '총풀이':{number:S.allStats.total},
+    '정답률':{number:S.allStats.total?Math.round(S.allStats.correct/S.allStats.total*100):0},
+    '전체진도':{number:Math.round((S.phaseProgress.p1+S.phaseProgress.p2+S.phaseProgress.p3+S.phaseProgress.p4)/4)},
+    '오늘풀이':{number:S.todayStats.total},
+  };
+  try{
+    await fetch(`https://api.notion.com/v1/pages`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+S.notionToken,'Content-Type':'application/json','Notion-Version':'2022-06-28'},
+      body:JSON.stringify({parent:{database_id:S.notionDbId},properties:props})
+    });
+  }catch(e){}
+}
+
+async function saveNotionConfig(){
+  S.notionToken=document.getElementById('notion-token').value.trim();
+  S.notionDbId=document.getElementById('notion-dbid').value.trim().replace(/-/g,'');
+  save();
+  document.getElementById('notion-status').textContent='✓ 저장 완료. 다음 학습부터 자동 기록됩니다.';
+  document.getElementById('notion-status').style.color='var(--green)';
+}
+
+async function testNotionConnection(){
+  const st=document.getElementById('notion-status');
+  st.textContent='테스트 중...'; st.style.color='var(--text3)';
+  try{
+    const res=await fetch(`https://api.notion.com/v1/databases/${S.notionDbId||'test'}`,{
+      headers:{'Authorization':'Bearer '+(S.notionToken||''),'Notion-Version':'2022-06-28'}
+    });
+    if(res.ok){st.textContent='✓ 연결 성공';st.style.color='var(--green)';}
+    else{const d=await res.json();st.textContent='✗ 오류: '+d.message;st.style.color='var(--red)';}
+  }catch(e){st.textContent='✗ 네트워크 오류';st.style.color='var(--red)';}
+}
+
+function saveApiKey(){
+  S.apiKey=document.getElementById('api-key-input').value.trim();
+  save();
+  document.getElementById('api-key-status').textContent='✓ 저장됨';
+  document.getElementById('api-key-status').style.color='var(--green)';
+}
+
+// ════════════════════════════════════════
+// IMPORT / EXPORT
+// ════════════════════════════════════════
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='acct_study_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function importData(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      S=Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)),d);
+      save(); location.reload();
+    }catch(err){alert('파일 형식 오류');}
+  };
+  r.readAsText(file);
+}
+
+function resetData(){
+  if(!confirm('모든 학습 데이터를 초기화합니까?'))return;
+  localStorage.removeItem('acct_v2');
+  location.reload();
+}
+
+// ════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════
+const SECTION_META={
+  learn:   {title:'오늘의 학습',sub:'Phase 믹스 · 시사 연계 · 기업 진단 훈련'},
+  review:  {title:'오답 복습',sub:'틀린 개념은 완전히 이해할 때까지 반복'},
+  progress:{title:'주간 리포트',sub:'목표 대비 갭(Gap) 분석 — 칭찬 없이'},
+  concepts:{title:'개념 이해도 맵',sub:'Phase 1~4 · 개념별 현재 숙련도 시각화'},
+  history: {title:'학습 이력',sub:'언제 학습했는지 날짜별 기록'},
+  roadmap: {title:'학습 로드맵',sub:'My FinLab의 설계 철학과 Phase 1~4 구조'},
+  settings:{title:'설정 / 동기화',sub:'Notion 연동 · 데이터 관리'},
+};
+
+function showSection(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  const navItems=document.querySelectorAll('.nav-item');
+  const idx=['learn','review','progress','concepts','history','roadmap','settings'].indexOf(name);
+  navItems[idx]?.classList.add('active');
+  const m=SECTION_META[name];
+  document.getElementById('tb-title').textContent=m.title;
+  document.getElementById('tb-sub').textContent=m.sub;
+  document.getElementById('tab-bar').style.display=name==='learn'?'flex':'none';
+  document.getElementById('more-btn').style.display='none';
+
+  if(name==='progress') renderProgress();
+  if(name==='concepts'){renderConceptMap();setTimeout(renderRadar,100);}
+  if(name==='history') renderHistory();
+  if(name==='review') renderReview();
+  if(name==='settings'){
+    document.getElementById('notion-token').value=S.notionToken||'';
+    document.getElementById('notion-dbid').value=S.notionDbId||'';
+    document.getElementById('api-key-input').value=S.apiKey||'';
+  }
+  closeSidebar();
+}
+
+function showTab(name){
+  ['quiz','chat'].forEach(t=>{
+    document.getElementById('tab-'+t+'-content').style.display=t===name?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+  });
+}
+
+function showQuizState(state){
+  document.getElementById('diag-area').style.display=state==='diag'?'block':'none';
+  document.getElementById('quiz-loading').style.display=state==='loading'?'block':'none';
+  document.getElementById('quiz-area').style.display=state==='quiz'?'block':'none';
+}
+
+function updateSidebar(){
+  const s=S.allStats;
+  document.getElementById('sb-total').textContent=s.total;
+  document.getElementById('sb-acc').textContent=s.total?Math.round(s.correct/s.total*100)+'%':'—';
+  document.getElementById('sb-today').textContent=S.todayStats.total;
+  const pp=S.phaseProgress;
+  const pct=Math.round((pp.p1+pp.p2+pp.p3+pp.p4)/4);
+  document.getElementById('sb-pct').textContent=pct+'%';
+  document.getElementById('sb-streak').textContent=`🔥 연속 ${S.streakDays}일`;
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+function init(){
+  load();
+  updateSidebar();
+  updateReviewBadge();
+  // streak check
+  const today=new Date().toDateString();
+  if(S.lastStudyDate!==today){
+    const yesterday=new Date(Date.now()-86400000).toDateString();
+    if(S.lastStudyDate===yesterday) S.streakDays++;
+    else if(S.lastStudyDate&&S.lastStudyDate!==today) S.streakDays=1;
+    S.lastStudyDate=today;
+    S.todayStats={total:0,correct:0};
+    save();
+  }
+
+  if(!S.diagnosed){
+    initDiag();
+  } else if(S.questions.length){
+    showQuizState('quiz');
+    renderQ(S.curQ);
+    if(S.answered.every(a=>a!==null)) document.getElementById('more-wrap').style.display='block';
+  } else {
+    S.sessionStart=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    generateQuestions(3,true);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
