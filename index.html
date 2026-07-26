@@ -1019,7 +1019,11 @@ function sanitizeDataTable(dt) {
 // ═══════════════════════════════════════════
 // GENERATE QUESTIONS — 5개씩 배치
 // ═══════════════════════════════════════════
+let isGenerating = false; // 중복 호출 방지
+
 async function generateQuestions(count=20, includeReview=false) {
+  if (isGenerating) return; // 생성 중 중복 호출 무시
+  isGenerating = true;
   showState('loading');
 
   const lvl = ['','완전입문(차변·대변 헷갈림)','초급(기본분개 가능)','중급(재무제표 읽기)'][S.userLevel] || '입문';
@@ -1027,54 +1031,60 @@ async function generateQuestions(count=20, includeReview=false) {
     ? `\n오답 재출제: ${S.wrongQ.slice(0,3).map(w=>w.concept).join(', ')}` : '';
   const p = S.userProfile || {};
   const profileCtx = p.industry ? `업종:${p.industry} 목적:${p.role||'전반'}` : '';
-
-  // 최근 출제 이력 → 동일/유사 문제 재출제 방지 (최근 30개만 전달, 데이터 자체는 무제한 누적)
   const recentSeen = (S.seenQuestions || []).slice(-30);
   const seenCtx = recentSeen.length
     ? `\n\n[최근 출제된 문제 — 아래와 동일하거나 거의 같은 문제·수치·맥락으로 절대 재출제하지 말 것]\n` +
       recentSeen.map(s => `- (Phase${s.phase}/${s.conceptKey}) ${s.q}`).join('\n')
     : '';
 
-  let allQs = [];
   const batchSize = 5;
   const batches = Math.ceil(count / batchSize);
+  let allQs = [];
 
-  try {
-    for (let b = 0; b < batches; b++) {
-      const need = Math.min(batchSize, count - allQs.length);
-      if (need <= 0) break;
-
-      setLoading(`문제 생성 중`, `${allQs.length} / ${count}`);
-
-      const usedTitles = allQs.map(q => q.question.slice(0,20)).join(' / ');
-      const usedCtx = usedTitles ? `\n이번 배치 내 중복금지: ${usedTitles}` : '';
-
-      const prompt = `수준:${lvl}${reviewCtx}${profileCtx ? '\n'+profileCtx : ''}${usedCtx}${seenCtx}
+  async function fetchBatch(batchIndex) {
+    const need = Math.min(batchSize, count - allQs.length);
+    if (need <= 0) return;
+    const usedTitles = allQs.map(q => q.question.slice(0,20)).join(' / ');
+    const usedCtx = usedTitles ? `\n이번 배치 내 중복금지: ${usedTitles}` : '';
+    const prompt = `수준:${lvl}${reviewCtx}${profileCtx ? '\n'+profileCtx : ''}${usedCtx}${seenCtx}
 재무회계 문제 정확히 ${need}개 생성. Phase 1~4 균형있게(난이도 수준${S.userLevel} 기준), 시사연계 가능.
 위 "최근 출제된 문제" 목록과 주제·상황·수치가 겹치지 않는 새로운 문제로 생성할 것.
 반드시 JSON 배열 ${need}개만 출력. 다른 텍스트 없이.`;
-
-      try {
-        const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 4000);
-        const batch = parseJSON(raw);
-        if (batch && batch.length) {
-          allQs = allQs.concat(batch.slice(0, need).map(sanitizeQ));
-        }
-      } catch(bErr) {
-        console.warn('Batch', b, 'error:', bErr.message);
+    try {
+      const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 4000);
+      const batch = parseJSON(raw);
+      if (batch && batch.length) {
+        allQs = allQs.concat(batch.slice(0, need).map(sanitizeQ));
       }
+    } catch(e) {
+      console.warn('Batch', batchIndex, 'error:', e.message);
     }
+  }
+
+  try {
+    // 첫 배치 생성 → 즉시 화면 전환
+    setLoading('문제 생성 중', '0 / ' + count);
+    await fetchBatch(0);
 
     if (!allQs.length) throw new Error('문제를 생성하지 못했습니다. API 키를 확인하고 다시 시도해주세요.');
 
-    S.questions = allQs;
-    S.answered = Array(allQs.length).fill(null);
+    // 첫 5문제로 즉시 시작
+    S.questions = [...allQs];
+    S.answered = Array(count).fill(null); // 전체 슬롯 미리 확보
     S.curQ = 0;
     saveState();
     showState('quiz');
     renderQ(0);
     updateSidebar();
     document.getElementById('more-wrap').style.display = 'none';
+
+    // 나머지 배치를 백그라운드에서 순차 생성 — 화면 건드리지 않음
+    for (let b = 1; b < batches; b++) {
+      await fetchBatch(b);
+      // 생성된 문제를 기존 배열에 조용히 추가 (answered 슬롯은 이미 확보됨)
+      S.questions = [...allQs];
+      saveState();
+    }
 
   } catch(e) {
     showState('quiz');
@@ -1083,6 +1093,8 @@ async function generateQuestions(count=20, includeReview=false) {
     document.getElementById('q-opts').innerHTML =
       `<button class="btn btn-primary" style="margin-top:12px" onclick="generateQuestions(20,false)">다시 시도</button>`;
     document.getElementById('q-result').classList.remove('show');
+  } finally {
+    isGenerating = false;
   }
 }
 
@@ -1148,7 +1160,20 @@ function renderDataTable(dt) {
 
 function renderQ(i) {
   const q = S.questions[i];
-  if (!q) return;
+
+  // 백그라운드 생성 중이고 아직 이 슬롯이 준비 안 된 경우
+  if (!q) {
+    if (isGenerating) {
+      document.getElementById('q-meta').innerHTML = '';
+      document.getElementById('q-ctx').style.display = 'none';
+      document.getElementById('q-text').textContent = '다음 문제를 준비하고 있습니다...';
+      document.getElementById('q-opts').innerHTML = '<div style="color:var(--text3);font-size:13px;margin-top:8px">잠시 후 자동으로 표시됩니다</div>';
+      document.getElementById('q-result').classList.remove('show');
+      // 1초 후 재시도
+      setTimeout(() => { if (S.questions[i]) renderQ(i); }, 1000);
+    }
+    return;
+  }
 
   const stars = [1,2,3,4,5].map(n =>
     `<span class="star ${n<=q.difficulty?'on':'off'}">★</span>`).join('');
