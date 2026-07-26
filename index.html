@@ -78,12 +78,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sidebar-bottom{padding:14px 18px;border-top:1px solid var(--border)}
 .sb-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:10px}
 .sb-stat{display:flex;flex-direction:column;gap:2px}
-.sb-stat-label{font-size:10px;color:var(--text3);letter-spacing:.3px}
+.sb-stat-label{font-size:10px;color:var(--text2);letter-spacing:.3px}
 .sb-stat-val{font-size:13px;font-weight:700;color:var(--gold)}
 .sb-stat-val.today{color:var(--green)}
 .sb-divider{height:1px;background:var(--border);margin:8px 0}
-.sb-progress-block{background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:8px 10px;margin-bottom:8px}
-.sb-progress-label{font-size:10px;color:var(--text3);margin-bottom:4px;letter-spacing:.3px}
+.sb-progress-block{background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.sb-progress-block:hover{border-color:rgba(201,169,110,0.5)}
+.sb-progress-label{font-size:10px;color:var(--text2);margin-bottom:4px;letter-spacing:.3px}
 .sb-progress-val{font-size:18px;font-weight:800;color:var(--gold);line-height:1}
 .sb-progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:5px}
 .sb-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .5s ease}
@@ -287,34 +288,42 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="nav-item" onclick="showSection('concepts')"><span class="nav-icon">🧠</span> 개념 이해도</div>
     <div class="nav-item" onclick="showSection('history')"><span class="nav-icon">🗓</span> 학습 이력</div>
     <div class="nav-item" onclick="showSection('roadmap')"><span class="nav-icon">🗺</span> 학습 로드맵</div>
+    <div class="nav-item" onclick="showSection('goal')"><span class="nav-icon">🎯</span> 내 목표</div>
     <div class="nav-item" onclick="showSection('settings')"><span class="nav-icon">⚙️</span> 설정 / 동기화</div>
   </nav>
   <div class="sidebar-bottom">
-    <div class="sb-stats-grid">
-      <div class="sb-stat">
-        <span class="sb-stat-label">누적 풀이</span>
-        <span class="sb-stat-val" id="sb-total">0</span>
+    <!-- 로그인 후에만 표시 -->
+    <div id="sb-logged-in" style="display:none">
+      <div class="sb-stats-grid">
+        <div class="sb-stat">
+          <span class="sb-stat-label">누적 풀이</span>
+          <span class="sb-stat-val" id="sb-total">0</span>
+        </div>
+        <div class="sb-stat">
+          <span class="sb-stat-label">오늘 풀이</span>
+          <span class="sb-stat-val today" id="sb-today">0</span>
+        </div>
+        <div class="sb-stat">
+          <span class="sb-stat-label">누적 정답률</span>
+          <span class="sb-stat-val" id="sb-acc">—</span>
+        </div>
+        <div class="sb-stat">
+          <span class="sb-stat-label">오늘 정답률</span>
+          <span class="sb-stat-val today" id="sb-today-acc">—</span>
+        </div>
       </div>
-      <div class="sb-stat">
-        <span class="sb-stat-label">오늘 풀이</span>
-        <span class="sb-stat-val today" id="sb-today">0</span>
+      <div class="sb-divider"></div>
+      <div class="sb-progress-block" onclick="showSection('goal')">
+        <div class="sb-progress-label">최종목표(기업진단+Forecast)까지 →</div>
+        <div class="sb-progress-val" id="sb-pct">0%</div>
+        <div class="sb-progress-bar"><div class="sb-progress-fill" id="sb-pct-bar" style="width:0%"></div></div>
       </div>
-      <div class="sb-stat">
-        <span class="sb-stat-label">누적 정답률</span>
-        <span class="sb-stat-val" id="sb-acc">—</span>
-      </div>
-      <div class="sb-stat">
-        <span class="sb-stat-label">오늘 정답률</span>
-        <span class="sb-stat-val today" id="sb-today-acc">—</span>
-      </div>
+      <div class="streak" id="sb-streak">🔥 연속 0일</div>
     </div>
-    <div class="sb-divider"></div>
-    <div class="sb-progress-block">
-      <div class="sb-progress-label">최종목표 도달도 (기업진단+Forecast)</div>
-      <div class="sb-progress-val" id="sb-pct">0%</div>
-      <div class="sb-progress-bar"><div class="sb-progress-fill" id="sb-pct-bar" style="width:0%"></div></div>
+    <!-- 로그인 전에만 표시 -->
+    <div id="sb-logged-out" style="font-size:12px;color:var(--text3);line-height:1.6;padding:4px 0">
+      Google 로그인 후 학습 데이터가 표시됩니다.
     </div>
-    <div class="streak" id="sb-streak">🔥 연속 0일</div>
     <div class="copyright">© Haji Lee · <a href="mailto:haji200@gmail.com">haji200@gmail.com</a></div>
   </div>
 </aside>
@@ -346,15 +355,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
               <div style="font-size:22px">👋</div>
               <div>
-                <div style="font-size:16px;font-weight:700;color:var(--text)" id="welcome-greeting">안녕하세요, Haji님</div>
+                <div style="font-size:16px;font-weight:700;color:var(--text)">안녕하세요, Haji님</div>
                 <div style="font-size:12px;color:var(--text3)" id="welcome-date"></div>
               </div>
             </div>
-            <!-- 현황 요약 카드 -->
+            <!-- 현황 요약 -->
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
               <div class="kpi-card">
                 <div class="kpi-val" id="wc-pct" style="font-size:20px">0%</div>
-                <div class="kpi-label">최종목표<br>도달도</div>
+                <div class="kpi-label">목표까지</div>
               </div>
               <div class="kpi-card">
                 <div class="kpi-val" id="wc-acc" style="font-size:20px">—</div>
@@ -366,13 +375,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               </div>
             </div>
             <!-- AI 진단 코멘트 -->
-            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;min-height:60px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;min-height:56px">
               <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600">AI 학습 진단</div>
               <div id="welcome-comment" style="font-size:13px;color:var(--text2);line-height:1.7">분석 중...</div>
             </div>
-            <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px" onclick="startTodayLearning()">
-              오늘의 학습 시작하기 →
-            </button>
+            <!-- 상황별 버튼 영역 -->
+            <div id="welcome-actions"></div>
           </div>
         </div>
         <!-- Diagnosis -->
@@ -528,6 +536,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div style="font-size:11px;color:var(--text3)">평균 정답률: <span id="hist-year-acc" style="color:var(--green);font-weight:700">—</span></div>
             <div style="font-size:11px;color:var(--text3)">학습일수: <span id="hist-year-days" style="color:var(--text2);font-weight:700">0</span>일</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOAL -->
+    <div class="section" id="sec-goal">
+      <div class="card">
+        <div class="card-title">🎯 내 목표</div>
+        <div class="card-sub">최종목표(기업진단+Forecast)까지의 달성 현황</div>
+        <!-- 전체 진도 -->
+        <div style="background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px">최종목표(기업진단+Forecast)까지</div>
+          <div style="font-size:42px;font-weight:900;color:var(--gold);line-height:1" id="goal-pct">0%</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;margin-top:12px">
+            <div id="goal-pct-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .6s ease;width:0%"></div>
+          </div>
+        </div>
+        <!-- Phase별 목표 기준표 -->
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Phase별 달성 기준 및 현황</div>
+        <div id="goal-phase-table"></div>
+        <!-- 범례 -->
+        <div style="margin-top:14px;padding:10px 12px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--text3);line-height:1.8">
+          <div>✅ = 목표 달성 &nbsp;|&nbsp; 🔸 = 진행 중 &nbsp;|&nbsp; ⬜ = 미시작</div>
+          <div style="margin-top:4px">전체 진도 = Phase별 진도의 가중평균 (P1×10% + P2×20% + P3×30% + P4×40%)</div>
+          <div style="margin-top:2px">Phase 진도 = (풀이수 달성도) × (정답률 달성도) — 두 조건 모두 충족해야 100%</div>
         </div>
       </div>
     </div>
@@ -847,6 +880,9 @@ function initCloudSync() {
       mflUid = null;
       document.getElementById('sync-signed-out').style.display = 'block';
       document.getElementById('sync-signed-in').style.display = 'none';
+      updateSidebar();
+      showSection('learn');
+      showWelcome();
     }
   });
 }
@@ -1631,6 +1667,57 @@ function updateReviewBadge() {
 // ═══════════════════════════════════════════
 // PROGRESS & CONCEPTS
 // ═══════════════════════════════════════════
+function renderGoal() {
+  const pct = overallProgress();
+  document.getElementById('goal-pct').textContent = pct + '%';
+  document.getElementById('goal-pct-bar').style.width = pct + '%';
+
+  const phases = [
+    {ph:1, label:'Phase 1', sub:'차변·대변·분개 기초',     color:'#9b7fd4', weight:10},
+    {ph:2, label:'Phase 2', sub:'손익계산서·B/S·현금흐름', color:'#4dbe96', weight:20},
+    {ph:3, label:'Phase 3', sub:'DART 분석·회계처리 판단', color:'#c9a96e', weight:30},
+    {ph:4, label:'Phase 4', sub:'기업 진단·Forecast',       color:'#e05858', weight:40},
+  ];
+
+  const pp = S.phaseProgress;
+  document.getElementById('goal-phase-table').innerHTML = phases.map(p => {
+    const d = getPhaseDetail(p.ph);
+    const phasePct = pp['p'+p.ph];
+    const countStatus = d.countDone ? '✅' : d.attempted > 0 ? '🔸' : '⬜';
+    const accStatus   = d.accDone   ? '✅' : d.attempted > 0 ? '🔸' : '⬜';
+    const remainCount = Math.max(0, d.goalCount - d.attempted);
+    const remainAcc   = d.accDone ? 0 : d.goalAccuracy - d.accuracy;
+
+    return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <span style="font-size:14px;font-weight:700;color:${p.color}">${p.label}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:6px">${p.sub}</span>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:20px;font-weight:800;color:${p.color}">${phasePct}%</span>
+          <span style="font-size:10px;color:var(--text3);margin-left:4px">비중 ${p.weight}%</span>
+        </div>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:12px">
+        <div style="height:100%;width:${phasePct}%;background:${p.color};border-radius:2px;transition:width .5s ease"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px">
+          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">📝 문제 수</div>
+          <div style="color:var(--text);font-weight:700">${d.attempted} / ${d.goalCount}문제 ${countStatus}</div>
+          ${!d.countDone ? `<div style="color:var(--text3);font-size:11px;margin-top:2px">${remainCount}문제 더 필요</div>` : '<div style="color:var(--green);font-size:11px;margin-top:2px">달성!</div>'}
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px">
+          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">🎯 정답률</div>
+          <div style="color:var(--text);font-weight:700">${d.attempted ? d.accuracy+'%' : '—'} / ${d.goalAccuracy}% ${accStatus}</div>
+          ${d.attempted && !d.accDone ? `<div style="color:var(--text3);font-size:11px;margin-top:2px">${remainAcc}%p 더 필요</div>` : d.accDone ? '<div style="color:var(--green);font-size:11px;margin-top:2px">달성!</div>' : '<div style="color:var(--text3);font-size:11px;margin-top:2px">아직 미시작</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderProgress() {
   const total = overallProgress();
   const acc = S.allStats.total ? Math.round(S.allStats.correct/S.allStats.total*100) : 0;
@@ -1671,22 +1758,22 @@ function renderProgress() {
 }
 
 const CONCEPT_META = {
-  debit_credit:{label:'차변·대변 원리',phase:1,color:'#9b7fd4'},
-  five_accounts:{label:'5대 계정과목',phase:1,color:'#9b7fd4'},
-  basic_journal:{label:'기초 분개',phase:1,color:'#9b7fd4'},
-  asset_expense:{label:'자산 vs 비용 구분',phase:1,color:'#9b7fd4'},
-  pl_structure:{label:'손익계산서 구조',phase:2,color:'#4dbe96'},
-  bs_structure:{label:'대차대조표 구조',phase:2,color:'#4dbe96'},
-  cf_structure:{label:'현금흐름표',phase:2,color:'#4dbe96'},
-  ratios_basic:{label:'재무비율 기초',phase:2,color:'#4dbe96'},
-  dart_reading:{label:'DART 공시 독해',phase:3,color:'#c9a96e'},
-  timeseries:{label:'시계열 추세 분석',phase:3,color:'#c9a96e'},
-  accounting_judgment:{label:'회계처리 판단',phase:3,color:'#c9a96e'},
-  accrual:{label:'발생주의·선급·미지급',phase:3,color:'#c9a96e'},
-  roe_roa_ebitda:{label:'ROE·ROA·EBITDA',phase:4,color:'#e05858'},
-  company_diagnosis:{label:'기업 건강 진단',phase:4,color:'#e05858'},
-  forecast:{label:'재무 Forecast',phase:4,color:'#e05858'},
-  industry_analysis:{label:'업종별 재무구조 분석',phase:4,color:'#e05858'},
+  debit_credit:        {label:'차변·대변 원리',         phase:1, color:'#9b7fd4', desc:'모든 거래를 왼쪽(차변)과 오른쪽(대변)으로 나누어 기록하는 복식부기의 핵심 원리'},
+  five_accounts:       {label:'5대 계정과목',           phase:1, color:'#9b7fd4', desc:'자산·부채·자본·수익·비용 — 모든 재무 거래를 분류하는 5가지 기본 틀'},
+  basic_journal:       {label:'기초 분개',               phase:1, color:'#9b7fd4', desc:'거래를 차변/대변으로 나누어 장부에 기록하는 작업. 회계의 가장 기초적인 실무'},
+  asset_expense:       {label:'자산 vs 비용 구분',       phase:1, color:'#9b7fd4', desc:'돈을 쓸 때 "자산이 되는가(미래 효익)" vs "비용이 되는가(당기 소멸)"를 판단하는 능력'},
+  pl_structure:        {label:'손익계산서 구조',         phase:2, color:'#4dbe96', desc:'매출 → 매출원가 → 영업이익 → 당기순이익까지 이익이 만들어지는 단계별 구조'},
+  bs_structure:        {label:'재무상태표 구조',         phase:2, color:'#4dbe96', desc:'특정 시점의 자산(가진 것) = 부채(빌린 것) + 자본(내 것) 구조를 읽는 방법'},
+  cf_structure:        {label:'현금흐름표',               phase:2, color:'#4dbe96', desc:'영업·투자·재무 활동으로 현금이 얼마나 들어오고 나갔는지 보여주는 표. 이익과 현금은 다르다'},
+  ratios_basic:        {label:'재무비율 기초',           phase:2, color:'#4dbe96', desc:'유동비율·부채비율·영업이익률 등 재무제표 숫자들의 관계를 비율로 해석하는 방법'},
+  dart_reading:        {label:'DART 공시 독해',         phase:3, color:'#c9a96e', desc:'금융감독원 전자공시(DART)에서 사업보고서·감사보고서를 찾아 핵심 정보를 읽는 실전 능력'},
+  timeseries:          {label:'시계열 추세 분석',       phase:3, color:'#c9a96e', desc:'2~3년치 재무 데이터를 비교해 매출 성장세, 수익성 변화, 비용 구조 트렌드를 파악하는 방법'},
+  accounting_judgment: {label:'회계처리 판단',           phase:3, color:'#c9a96e', desc:'실제 거래 상황에서 어떤 계정으로 처리할지, 수익/비용 인식 시점은 언제인지 판단하는 능력'},
+  accrual:             {label:'발생주의·선급·미지급',   phase:3, color:'#c9a96e', desc:'현금 수수와 관계없이 실제 발생한 시점에 수익·비용을 인식하는 원칙과 그 적용 방법'},
+  roe_roa_ebitda:      {label:'ROE·ROA·EBITDA',         phase:4, color:'#e05858', desc:'자기자본이익률(ROE)·총자산이익률(ROA)·상각전영업이익(EBITDA)으로 수익성과 효율성을 진단'},
+  company_diagnosis:   {label:'기업 건강 진단',         phase:4, color:'#e05858', desc:'재무제표만으로 기업의 수익성·안정성·성장성·현금창출력을 종합 진단하는 실전 분석 능력'},
+  forecast:            {label:'재무 Forecast',           phase:4, color:'#e05858', desc:'과거 재무 데이터와 사업 맥락을 바탕으로 미래 매출·이익·현금흐름을 합리적으로 예측'},
+  industry_analysis:   {label:'업종별 재무구조 분석',   phase:4, color:'#e05858', desc:'IT서비스·제조·유통 등 업종마다 다른 재무구조의 특성을 이해하고 비교 기준으로 활용'},
 };
 
 function conceptPct(key) {
@@ -1707,11 +1794,14 @@ function renderConceptMap() {
         const pct = conceptPct(key);
         const color = pct>=70?'var(--green)':pct>=40?'var(--gold)':'var(--red)';
         const flag = pct<40?'🔴 즉시 보강':pct<70?'🟡 보강 필요':'🟢 양호';
-        return `<div class="concept-row">
-          <div class="concept-name">${meta.label}</div>
-          <div class="concept-bar-wrap"><div class="concept-bar" style="width:${pct}%;background:${color}"></div></div>
-          <div class="concept-pct" style="color:${color}">${pct}%</div>
-          <div class="concept-flag">${flag}</div>
+        return `<div class="concept-row" style="flex-wrap:wrap;gap:4px">
+          <div style="display:flex;align-items:center;gap:8px;width:100%;min-width:0">
+            <div class="concept-name" style="flex-shrink:0">${meta.label}</div>
+            <div class="concept-bar-wrap" style="flex:1"><div class="concept-bar" style="width:${pct}%;background:${color}"></div></div>
+            <div class="concept-pct" style="color:${color};flex-shrink:0">${pct}%</div>
+            <div class="concept-flag" style="flex-shrink:0">${flag}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);padding-left:2px;line-height:1.5;width:100%">${meta.desc}</div>
         </div>`;
       }).join('')}
     </div>`;
@@ -2036,9 +2126,10 @@ const SECTION_META = {
   concepts: {title:'개념 이해도 맵',  sub:'Phase 1~4 · 개념별 현재 숙련도 시각화'},
   history:  {title:'학습 이력',       sub:'날짜별 학습 기록'},
   roadmap:  {title:'학습 로드맵',     sub:'My FinLab 설계 철학과 Phase 1~4 구조'},
+  goal:     {title:'내 목표',         sub:'최종목표(기업진단+Forecast)까지의 달성 현황'},
   settings: {title:'설정 / 동기화',  sub:'Notion 연동 · 데이터 관리'},
 };
-const NAV_ORDER = ['learn','review','progress','concepts','history','roadmap','settings'];
+const NAV_ORDER = ['learn','review','progress','concepts','history','roadmap','goal','settings'];
 
 function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -2053,6 +2144,7 @@ function showSection(name) {
   if (name==='concepts') { renderConceptMap(); setTimeout(renderRadar,100); }
   if (name==='history') renderHistory();
   if (name==='review') renderReview();
+  if (name==='goal') renderGoal();
   if (name==='settings') {
     document.getElementById('notion-token').value = S.notionToken||'';
     document.getElementById('notion-dbid').value = S.notionDbId||'';
@@ -2076,6 +2168,11 @@ function showState(state) {
 }
 
 function updateSidebar() {
+  const loggedIn = !!mflUid;
+  document.getElementById('sb-logged-in').style.display  = loggedIn ? 'block' : 'none';
+  document.getElementById('sb-logged-out').style.display = loggedIn ? 'none'  : 'block';
+  if (!loggedIn) return;
+
   const s = S.allStats;
   const t = S.todayStats;
   const pct = overallProgress();
@@ -2132,21 +2229,30 @@ function init() {
 
   if (!S.diagnosed) {
     initDiag();
-  } else if (S.questions.length && S.answered.some(a => a === null)) {
-    // 풀다 만 세션 → 이어서 풀기
-    showState('quiz');
-    renderQ(S.curQ);
-    if (S.answered.every(a => a !== null)) {
-      document.getElementById('more-wrap').style.display = 'block';
-    }
   } else {
-    // 새 세션 → Welcome 화면 먼저
+    // 항상 Welcome 화면 먼저 — 상황(새 세션/풀다 만/오늘 완료)에 따라 버튼이 달라짐
     showWelcome();
   }
 }
 
 async function showWelcome() {
   showState('welcome');
+
+  // 로그인 전 → 로그인 유도만 표시
+  if (!mflUid) {
+    document.getElementById('welcome-date').textContent =
+      new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+    document.getElementById('wc-pct').textContent = '—';
+    document.getElementById('wc-acc').textContent = '—';
+    document.getElementById('wc-streak').textContent = '—';
+    document.getElementById('welcome-comment').textContent =
+      'Google 로그인 후 AI 진단 코멘트와 학습 현황을 확인할 수 있습니다.';
+    document.getElementById('welcome-actions').innerHTML = `
+      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px" onclick="MFL_signIn()">
+        🔐 Google 로그인 후 학습 시작
+      </button>`;
+    return;
+  }
   const pct = overallProgress();
   const acc = S.allStats.total ? Math.round(S.allStats.correct/S.allStats.total*100) : 0;
   const dateStr = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
@@ -2155,7 +2261,47 @@ async function showWelcome() {
   document.getElementById('wc-acc').textContent = S.allStats.total ? acc + '%' : '—';
   document.getElementById('wc-streak').textContent = S.streakDays + '일';
 
-  // AI 진단 코멘트 생성 (비동기, 화면은 먼저 보여줌)
+  // 상황 판단 → 버튼 구성
+  const actions = document.getElementById('welcome-actions');
+  const hasInProgress = S.questions.length > 0 && S.answered.some(a => a === null);
+  const todayDone = S.todayStats.total >= 20;
+  const doneCount = S.answered.filter(a => a !== null).length;
+  const totalCount = S.questions.length;
+
+  if (hasInProgress) {
+    // 풀다 만 세션이 있음
+    actions.innerHTML = `
+      <div style="background:var(--amber-bg);border:1px solid rgba(212,148,42,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amber)">
+        이전 세션이 남아있습니다 · ${doneCount}/${totalCount}문제 완료
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px;margin-bottom:8px" onclick="resumeLearning()">
+        이어서 풀기 (${totalCount - doneCount}문제 남음) →
+      </button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="startTodayLearning()">
+        새로 시작하기
+      </button>`;
+  } else if (todayDone) {
+    // 오늘 학습 완료
+    const todayAcc = S.todayStats.total ? Math.round(S.todayStats.correct/S.todayStats.total*100) : 0;
+    actions.innerHTML = `
+      <div style="background:rgba(77,190,150,0.1);border:1px solid rgba(77,190,150,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--green)">
+        오늘 학습 완료 ✓ · ${S.todayStats.total}문제 · 정답률 ${todayAcc}%
+      </div>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:15px;padding:14px;margin-bottom:8px" onclick="startExtraLearning()">
+        추가 5문제 더 풀기
+      </button>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="startTodayLearning()">
+        새로 20문제 시작하기
+      </button>`;
+  } else {
+    // 새 세션
+    actions.innerHTML = `
+      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px" onclick="startTodayLearning()">
+        오늘의 학습 시작하기 →
+      </button>`;
+  }
+
+  // AI 진단 코멘트 (비동기 — 화면 먼저 표시 후 생성)
   const commentEl = document.getElementById('welcome-comment');
   if (!S.apiKey) {
     commentEl.textContent = 'API 키를 설정하면 AI 진단 코멘트를 볼 수 있습니다.';
@@ -2167,8 +2313,9 @@ async function showWelcome() {
       .filter(([,v])=>v.a>0)
       .map(([k,v])=>({k, pct:Math.round(v.c/v.a*100)}))
       .sort((a,b)=>a.pct-b.pct).slice(0,2).map(x=>x.k).join(', ');
-    const prompt = `학습자 현황: 최종목표도달도${pct}%, 누적정답률${acc}%, 연속${S.streakDays}일, 총풀이${S.allStats.total}문제, P1:${pp.p1}%/P2:${pp.p2}%/P3:${pp.p3}%/P4:${pp.p4}%, 취약개념:${weak||'없음'}.
-이 학습자에게 오늘 학습을 시작하기 전 건네는 짧고 솔직한 진단 코멘트를 2~3문장으로 작성해. 잘한 점 1가지 + 오늘 집중할 방향 1가지. 친근하지만 냉정하게.`;
+    const situation = hasInProgress ? '풀다 만 세션이 있는 상태' : todayDone ? '오늘 학습을 이미 완료한 상태' : '새로 학습을 시작하려는 상태';
+    const prompt = `학습자 현황: 최종목표도달도${pct}%, 누적정답률${acc}%, 연속${S.streakDays}일, 총풀이${S.allStats.total}문제, P1:${pp.p1}%/P2:${pp.p2}%/P3:${pp.p3}%/P4:${pp.p4}%, 취약개념:${weak||'없음'}, 현재상황:${situation}.
+2~3문장으로 솔직하고 친근하게 진단 코멘트를 작성해. 잘한 점 1가지 + 오늘 집중할 방향 1가지.`;
     const raw = await callClaude([{role:'user',content:prompt}],
       '당신은 재무회계 학습 코치입니다. 간결하고 솔직하게 답변하세요.', 300);
     commentEl.textContent = raw.trim();
@@ -2177,9 +2324,19 @@ async function showWelcome() {
   }
 }
 
+function resumeLearning() {
+  showState('quiz');
+  renderQ(S.curQ);
+}
+
 function startTodayLearning() {
   S.sessionStart = now();
   generateQuestions(20, false);
+}
+
+function startExtraLearning() {
+  S.sessionStart = now();
+  generateQuestions(5, false);
 }
 
 init();
