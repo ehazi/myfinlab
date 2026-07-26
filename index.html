@@ -872,9 +872,12 @@ function initCloudSync() {
       document.getElementById('sync-user-email').textContent = user.email || user.displayName || '로그인됨';
       await mergeWithCloud(user.uid);
       updateSidebar();
-      // 현재 화면 갱신 (병합 결과가 진도/오답 등에 반영되도록)
-      if (S.diagnosed && S.questions.length && !S.answered.some(a => a === null)) {
-        // 세션이 끝난 상태면 새로고침 없이 그대로 둠
+      updateReviewBadge();
+      // 로그인 완료 → Welcome 화면 갱신 (로그인 전 상태에서 로그인 후 상태로)
+      if (S.diagnosed) {
+        showWelcome();
+      } else {
+        initDiag();
       }
     } else {
       mflUid = null;
@@ -1660,7 +1663,7 @@ async function startReview(idx) {
 
 function updateReviewBadge() {
   const b = document.getElementById('review-badge');
-  if (S.wrongQ.length) { b.style.display=''; b.textContent=S.wrongQ.length; }
+  if (mflUid && S.wrongQ.length) { b.style.display=''; b.textContent=S.wrongQ.length; }
   else b.style.display = 'none';
 }
 
