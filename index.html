@@ -289,7 +289,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="nav-item" onclick="showSection('history')"><span class="nav-icon">🗓</span> 학습 이력</div>
     <div class="nav-item" onclick="showSection('roadmap')"><span class="nav-icon">🗺</span> 학습 로드맵</div>
     <div class="nav-item" onclick="showSection('goal')"><span class="nav-icon">🎯</span> 내 목표</div>
-    <div class="nav-item" onclick="showSection('settings')"><span class="nav-icon">⚙️</span> 설정 / 동기화</div>
+    <div class="nav-item" onclick="showSection('settings')"><span class="nav-icon">⚙️</span> 설정</div>
   </nav>
   <div class="sidebar-bottom">
     <!-- 로그인 후에만 표시 -->
@@ -630,57 +630,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
     <!-- SETTINGS -->
     <div class="section" id="sec-settings">
+      <!-- Claude API 키 -->
       <div class="card">
-        <div class="card-title">⚙️ Notion 동기화 설정</div>
-        <div class="card-sub">집·회사·모바일 어디서든 학습 이력이 이어집니다</div>
-        <div style="background:var(--amber-bg);border:1px solid rgba(212,148,42,.3);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text2)">
-          ⚠️ <strong style="color:var(--amber)">현재 구조상의 제약</strong> — My FinLab은 서버 없이 GitHub Pages에서 직접 실행되는 단일 파일입니다. Notion API는 보안상 브라우저(클라이언트)에서의 직접 호출을 차단(CORS)하기 때문에, 이 페이지의 "연결 테스트"나 자동 동기화는 <strong style="color:var(--amber)">현재 구조에서는 항상 실패</strong>합니다. 토큰이나 DB ID가 잘못된 것이 아닙니다.<br><br>
-          기기 간 학습 이력 이동은 아래 <strong style="color:var(--text)">"JSON 내보내기/불러오기"</strong>를 사용해 주세요. Notion 자동 동기화를 쓰려면 별도의 중계 서버(프록시)가 필요하며, 원하시면 별도로 구성을 도와드릴 수 있습니다.
+        <div class="card-title">🔑 Claude API 키</div>
+        <div class="card-sub">문제 생성에 사용됩니다 (브라우저 내 저장, 서버 전송 없음)</div>
+        <!-- 저장된 상태: 마스킹 표시 -->
+        <div id="api-key-saved" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px">
+            <span style="font-size:13px;color:var(--text2);flex:1;font-family:monospace" id="api-key-masked"></span>
+            <button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" onclick="showApiKeyEdit()">변경</button>
+          </div>
+          <div style="font-size:11px;color:var(--green)">✓ API 키가 저장되어 있습니다</div>
         </div>
-        <div class="setup-wrap">
-          <div class="setup-step">
-            <div class="setup-num">1</div>
-            <div class="setup-body">
-              <div class="setup-step-title">Notion Integration 토큰</div>
-              <div class="setup-step-desc"><a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--gold)">notion.so/my-integrations</a> → 개인 액세스 토큰 발급</div>
-              <input class="setup-input" id="notion-token" placeholder="ntn_xxxxxxxxxxxx"/>
-            </div>
+        <!-- 입력/수정 상태 -->
+        <div id="api-key-edit">
+          <input class="setup-input" id="api-key-input" placeholder="sk-ant-..." style="margin-bottom:10px"/>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" onclick="saveApiKey()">저장</button>
+            <button class="btn btn-ghost" id="api-key-cancel" onclick="cancelApiKeyEdit()" style="display:none">취소</button>
           </div>
-          <div class="setup-step">
-            <div class="setup-num">2</div>
-            <div class="setup-body">
-              <div class="setup-step-title">Database ID</div>
-              <div class="setup-step-desc">FinLab Notion DB URL에서 복사</div>
-              <input class="setup-input" id="notion-dbid" placeholder="378ce0ed3f17805e8cdcff5c6f7f65ea"/>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="setup-num">3</div>
-            <div class="setup-body">
-              <div class="setup-step-title">저장</div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <button class="btn btn-primary" onclick="saveNotionConfig()">저장</button>
-                <button class="btn btn-ghost" onclick="testNotion()">연결 테스트 (참고용)</button>
-              </div>
-              <div id="notion-status" style="margin-top:8px;font-size:13px;color:var(--text3)"></div>
-            </div>
-          </div>
-          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
-          <div style="font-size:14px;font-weight:700;margin-bottom:10px">데이터 관리 — 기기 간 이동은 이 방법을 사용하세요</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="exportData()">📥 JSON 내보내기</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📤 JSON 불러오기</button>
-            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
-            <button class="btn btn-danger" onclick="resetData()">초기화</button>
-          </div>
+          <div id="api-key-status" style="margin-top:8px;font-size:13px;color:var(--text3)"></div>
         </div>
       </div>
+      <!-- 데이터 관리 -->
       <div class="card">
-        <div class="card-title">Claude API 키</div>
-        <div class="card-sub">문제 생성에 사용됩니다 (브라우저 내 저장, 서버 전송 없음)</div>
-        <input class="setup-input" id="api-key-input" placeholder="sk-ant-..." style="margin-bottom:10px"/>
-        <button class="btn btn-primary" onclick="saveApiKey()">저장</button>
-        <div id="api-key-status" style="margin-top:8px;font-size:13px;color:var(--text3)"></div>
+        <div class="card-title">🗄 데이터 관리</div>
+        <div class="card-sub">비상 백업용 — 기기 간 동기화는 Google 로그인으로 자동 처리됩니다</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <button class="btn btn-ghost" onclick="exportData()">📥 JSON 백업</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📤 JSON 복원</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+          <button class="btn btn-danger" onclick="resetData()">초기화</button>
+        </div>
       </div>
     </div>
 
@@ -2062,34 +2043,49 @@ async function syncNotion() {
   } catch(e) { console.warn('Notion sync failed:', e); }
 }
 
-function saveNotionConfig() {
-  S.notionToken = document.getElementById('notion-token').value.trim();
-  S.notionDbId = document.getElementById('notion-dbid').value.trim().replace(/-/g,'');
-  saveState();
-  document.getElementById('notion-status').textContent = '✓ 저장 완료';
-  document.getElementById('notion-status').style.color = 'var(--green)';
-}
-
-async function testNotion() {
-  const st = document.getElementById('notion-status');
-  st.textContent = '테스트 중...'; st.style.color = 'var(--text3)';
-  try {
-    const res = await fetch(`https://api.notion.com/v1/databases/${S.notionDbId}`, {
-      headers:{'Authorization':'Bearer '+S.notionToken,'Notion-Version':'2022-06-28'}
-    });
-    if (res.ok) { st.textContent='✓ 연결 성공'; st.style.color='var(--green)'; }
-    else { const d=await res.json(); st.textContent='✗ '+d.message; st.style.color='var(--red)'; }
-  } catch(e) {
-    st.innerHTML = '✗ 브라우저에서 Notion API를 직접 호출할 수 없습니다 (CORS 제한). 토큰/DB ID 문제가 아닙니다 — 위 안내를 참고해 JSON 내보내기/불러오기를 사용해 주세요.';
-    st.style.color = 'var(--red)';
+function renderSettings() {
+  const key = S.apiKey || '';
+  if (key) {
+    // 저장된 상태 → 마스킹 표시
+    const masked = key.slice(0, 14) + '••••••••••••••••••••' + key.slice(-4);
+    document.getElementById('api-key-masked').textContent = masked;
+    document.getElementById('api-key-saved').style.display = 'block';
+    document.getElementById('api-key-edit').style.display = 'none';
+  } else {
+    // 미입력 상태 → 입력창 표시
+    document.getElementById('api-key-saved').style.display = 'none';
+    document.getElementById('api-key-edit').style.display = 'block';
+    document.getElementById('api-key-cancel').style.display = 'none';
+    document.getElementById('api-key-input').value = '';
+    document.getElementById('api-key-status').textContent = '';
   }
 }
 
+function showApiKeyEdit() {
+  document.getElementById('api-key-saved').style.display = 'none';
+  document.getElementById('api-key-edit').style.display = 'block';
+  document.getElementById('api-key-cancel').style.display = 'inline-flex';
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('api-key-input').focus();
+  document.getElementById('api-key-status').textContent = '';
+}
+
+function cancelApiKeyEdit() {
+  renderSettings();
+}
+
 function saveApiKey() {
-  S.apiKey = document.getElementById('api-key-input').value.trim();
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) {
+    document.getElementById('api-key-status').textContent = 'API 키를 입력해주세요.';
+    document.getElementById('api-key-status').style.color = 'var(--red)';
+    return;
+  }
+  S.apiKey = val;
   saveState();
   document.getElementById('api-key-status').textContent = '✓ 저장됨';
   document.getElementById('api-key-status').style.color = 'var(--green)';
+  setTimeout(() => renderSettings(), 800);
 }
 
 function exportData() {
@@ -2130,7 +2126,7 @@ const SECTION_META = {
   history:  {title:'학습 이력',       sub:'날짜별 학습 기록'},
   roadmap:  {title:'학습 로드맵',     sub:'My FinLab 설계 철학과 Phase 1~4 구조'},
   goal:     {title:'내 목표',         sub:'최종목표(기업진단+Forecast)까지의 달성 현황'},
-  settings: {title:'설정 / 동기화',  sub:'Notion 연동 · 데이터 관리'},
+  settings: {title:'설정',  sub:'Claude API 키 · 데이터 관리'},
 };
 const NAV_ORDER = ['learn','review','progress','concepts','history','roadmap','goal','settings'];
 
@@ -2148,11 +2144,7 @@ function showSection(name) {
   if (name==='history') renderHistory();
   if (name==='review') renderReview();
   if (name==='goal') renderGoal();
-  if (name==='settings') {
-    document.getElementById('notion-token').value = S.notionToken||'';
-    document.getElementById('notion-dbid').value = S.notionDbId||'';
-    document.getElementById('api-key-input').value = S.apiKey||'';
-  }
+  if (name==='settings') renderSettings();
   closeSidebar();
 }
 
