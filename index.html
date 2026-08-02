@@ -266,7 +266,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <div class="logo">My FinLab</div>
-    <div class="logo-sub">Financial Statement Mastery</div>
+    <div class="logo-sub">Master Financial Statements</div>
   </div>
   <div id="sync-box" style="padding:12px 18px;border-bottom:1px solid var(--border)">
     <div id="sync-signed-out">
@@ -349,13 +349,46 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <!-- LEARN -->
     <div class="section active" id="sec-learn">
       <div id="tab-quiz-content">
-        <!-- Welcome -->
+        <!-- 로그인 전 랜딩 화면 -->
+        <div id="landing-area" style="display:none">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:32px 16px">
+            <div style="font-size:36px;font-weight:900;color:var(--gold);letter-spacing:-1px;margin-bottom:6px">My FinLab</div>
+            <div style="font-size:14px;color:var(--text2);margin-bottom:32px;line-height:1.6">Master Financial Statements<br><span style="font-size:12px;color:var(--text3)">재무제표만으로 기업 건강 진단 + Forecast가 가능한 수준까지</span></div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:360px;margin-bottom:32px">
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">📊</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">4단계 학습</div>
+                <div style="font-size:11px;color:var(--text3)">기초 분개부터 기업 진단까지</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">🤖</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">AI 맞춤 출제</div>
+                <div style="font-size:11px;color:var(--text3)">수준·업종별 자동 생성</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">📈</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">진도 추적</div>
+                <div style="font-size:11px;color:var(--text3)">Phase별 달성 현황 시각화</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:20px;margin-bottom:4px">🔄</div>
+                <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">기기 간 동기화</div>
+                <div style="font-size:11px;color:var(--text3)">회사·집 어디서든 이어서</div>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;max-width:360px;justify-content:center;font-size:15px;padding:16px" onclick="MFL_signIn()">
+              🔐 Google 로그인 후 학습 시작
+            </button>
+            <div style="font-size:11px;color:var(--text3);margin-top:12px">© Haji Lee · haji200@gmail.com</div>
+          </div>
+        </div>
+        <!-- 로그인 후 Welcome 화면 -->
         <div id="welcome-area" style="display:none">
           <div class="card">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
               <div style="font-size:22px">👋</div>
               <div>
-                <div style="font-size:16px;font-weight:700;color:var(--text)">안녕하세요, Haji님</div>
+                <div style="font-size:16px;font-weight:700;color:var(--text)" id="welcome-greeting">안녕하세요</div>
                 <div style="font-size:12px;color:var(--text3)" id="welcome-date"></div>
               </div>
             </div>
@@ -848,13 +881,13 @@ function initCloudSync() {
   window.MFL_FB.onAuthChange(async (user) => {
     if (user) {
       mflUid = user.uid;
+      window._mflUserName = user.displayName || user.email || '';
       document.getElementById('sync-signed-out').style.display = 'none';
       document.getElementById('sync-signed-in').style.display = 'block';
       document.getElementById('sync-user-email').textContent = user.email || user.displayName || '로그인됨';
       await mergeWithCloud(user.uid);
       updateSidebar();
       updateReviewBadge();
-      // 로그인 완료 → Welcome 화면 갱신 (로그인 전 상태에서 로그인 후 상태로)
       if (S.diagnosed) {
         showWelcome();
       } else {
@@ -862,9 +895,11 @@ function initCloudSync() {
       }
     } else {
       mflUid = null;
+      window._mflUserName = '';
       document.getElementById('sync-signed-out').style.display = 'block';
       document.getElementById('sync-signed-in').style.display = 'none';
       updateSidebar();
+      updateReviewBadge();
       showSection('learn');
       showWelcome();
     }
@@ -2181,10 +2216,14 @@ function showTab(name) {
 }
 
 function showState(state) {
+  document.getElementById('landing-area').style.display  = state==='landing'  ? 'block':'none';
   document.getElementById('welcome-area').style.display  = state==='welcome'  ? 'block':'none';
   document.getElementById('diag-area').style.display    = state==='diag'    ? 'block':'none';
   document.getElementById('quiz-loading').style.display = state==='loading' ? 'block':'none';
   document.getElementById('quiz-area').style.display    = state==='quiz'    ? 'block':'none';
+  // 탭바: 로그인 상태 + learn 섹션일 때만, landing/welcome 제외
+  const showTabs = mflUid && !['landing','welcome','diag'].includes(state);
+  document.getElementById('tab-bar').style.display = showTabs ? 'flex' : 'none';
 }
 
 function updateSidebar() {
@@ -2256,27 +2295,22 @@ function init() {
 }
 
 async function showWelcome() {
-  showState('welcome');
-
-  // 로그인 전 → 로그인 유도만 표시
+  // 로그인 전 → 랜딩 화면 (브랜딩 + 로그인 버튼만)
   if (!mflUid) {
-    document.getElementById('welcome-date').textContent =
-      new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-    document.getElementById('wc-pct').textContent = '—';
-    document.getElementById('wc-acc').textContent = '—';
-    document.getElementById('wc-streak').textContent = '—';
-    document.getElementById('welcome-comment').textContent =
-      'Google 로그인 후 AI 진단 코멘트와 학습 현황을 확인할 수 있습니다.';
-    document.getElementById('welcome-actions').innerHTML = `
-      <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:14px" onclick="MFL_signIn()">
-        🔐 Google 로그인 후 학습 시작
-      </button>`;
+    showState('landing');
     return;
   }
+
+  showState('welcome');
+
+  // 로그인 후 → 이름 포함 인사말 + 개인 데이터 표시
+  const userName = (window._mflUserName || '').split('@')[0] || '';
+  document.getElementById('welcome-greeting').textContent = `안녕하세요${userName ? ', '+userName+'님' : ''}`;
+  document.getElementById('welcome-date').textContent =
+    new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+
   const pct = overallProgress();
   const acc = S.allStats.total ? Math.round(S.allStats.correct/S.allStats.total*100) : 0;
-  const dateStr = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
-  document.getElementById('welcome-date').textContent = dateStr;
   document.getElementById('wc-pct').textContent = pct + '%';
   document.getElementById('wc-acc').textContent = S.allStats.total ? acc + '%' : '—';
   document.getElementById('wc-streak').textContent = S.streakDays + '일';
