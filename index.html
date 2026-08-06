@@ -1766,6 +1766,7 @@ async function startReview(idx) {
 
 function updateReviewBadge() {
   const b = document.getElementById('review-badge');
+  if (!b) return; // 뱃지 요소가 없으면 무시
   if (mflUid && S.wrongQ.length) { b.style.display=''; b.textContent=S.wrongQ.length; }
   else b.style.display = 'none';
 }
