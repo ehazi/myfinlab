@@ -60,52 +60,52 @@
 --amber:#d4942a;--amber-bg:rgba(212,148,42,0.08);
 --purple:#9b7fd4;--radius:10px;--radius-lg:14px;
 --font:'Pretendard',-apple-system,sans-serif;
---sidebar-w:220px;--tr:.18s cubic-bezier(.4,0,.2,1);
+--sidebar-w:242px;--tr:.18s cubic-bezier(.4,0,.2,1);
 }
 html{scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .app{display:flex;min-height:100vh}
 .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;transition:transform var(--tr)}
-.sidebar-top{padding:22px 18px 14px;border-bottom:1px solid var(--border)}
-.logo{font-size:14px;font-weight:700;color:var(--gold)}
-.logo-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.sidebar-top{padding:24px 20px 16px;border-bottom:1px solid var(--border)}
+.logo{font-size:16px;font-weight:700;color:var(--gold)}
+.logo-sub{font-size:12px;color:var(--text3);margin-top:3px}
 .nav{padding:10px 0;flex:1;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:9px;padding:10px 18px;cursor:pointer;font-size:14px;color:var(--text2);border-left:2px solid transparent;transition:all var(--tr);user-select:none}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:15px;color:var(--text2);border-left:2px solid transparent;transition:all var(--tr);user-select:none}
 .nav-item:hover{color:var(--text);background:var(--bg3)}
 .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-bg);font-weight:600}
-.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
-.nav-badge{margin-left:auto;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:10px;font-size:11px;padding:1px 6px;font-weight:600}
-.sidebar-bottom{padding:14px 18px;border-top:1px solid var(--border)}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:10px;font-size:12px;padding:1px 7px;font-weight:600}
+.sidebar-bottom{padding:15px 20px;border-top:1px solid var(--border)}
 .sb-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:10px}
 .sb-stat{display:flex;flex-direction:column;gap:2px}
-.sb-stat-label{font-size:10px;color:var(--text2);letter-spacing:.3px}
-.sb-stat-val{font-size:13px;font-weight:700;color:var(--gold)}
+.sb-stat-label{font-size:11px;color:var(--text2);letter-spacing:.3px}
+.sb-stat-val{font-size:14px;font-weight:700;color:var(--gold)}
 .sb-stat-val.today{color:var(--green)}
 .sb-divider{height:1px;background:var(--border);margin:8px 0}
-.sb-progress-block{background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.sb-progress-block{background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:9px 11px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
 .sb-progress-block:hover{border-color:rgba(201,169,110,0.5)}
-.sb-progress-label{font-size:10px;color:var(--text2);margin-bottom:4px;letter-spacing:.3px}
-.sb-progress-val{font-size:18px;font-weight:800;color:var(--gold);line-height:1}
+.sb-progress-label{font-size:11px;color:var(--text2);margin-bottom:4px;letter-spacing:.3px}
+.sb-progress-val{font-size:20px;font-weight:800;color:var(--gold);line-height:1}
 .sb-progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:5px}
 .sb-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .5s ease}
-.streak{margin-top:6px;background:var(--amber-bg);border:1px solid rgba(212,148,42,.3);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--amber);text-align:center;font-weight:600}
-.copyright{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3)}
+.streak{margin-top:6px;background:var(--amber-bg);border:1px solid rgba(212,148,42,.3);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--amber);text-align:center;font-weight:600}
+.copyright{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--text3)}
 .copyright a{color:var(--text3);text-decoration:none}
 .main{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{padding:18px 28px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;background:var(--bg)}
-.topbar-title{font-size:18px;font-weight:700;color:var(--text)}
-.topbar-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 28px;background:var(--bg)}
-.tab{padding:11px 18px;font-size:14px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--tr);font-weight:500}
+.topbar{padding:20px 32px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;background:var(--bg)}
+.topbar-title{font-size:21px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:14px;color:var(--text3);margin-top:2px}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 32px;background:var(--bg)}
+.tab{padding:13px 20px;font-size:16px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--tr);font-weight:500}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
-.content{flex:1;padding:24px 28px;max-width:860px;overflow-y:auto}
+.content{flex:1;padding:28px 34px;max-width:980px;overflow-y:auto}
 .section{display:none}
 .section.active{display:block}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:14px}
-.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
-.card-sub{font-size:12px;color:var(--text3);margin-bottom:14px}
-.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;letter-spacing:.3px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 26px;margin-bottom:16px}
+.card-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:14px;color:var(--text3);margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:3px 9px;border-radius:5px;letter-spacing:.3px}
 .b-analysis{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(91,143,212,.3)}
 .b-processing{background:var(--green-bg);color:var(--green);border:1px solid rgba(77,190,150,.3)}
 .b-review{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,88,88,.3)}
@@ -115,30 +115,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .b-p3{background:rgba(201,169,110,.1);color:var(--gold);border:1px solid rgba(201,169,110,.3)}
 .b-p4{background:rgba(224,88,88,.1);color:var(--red);border:1px solid rgba(224,88,88,.3)}
 .stars{display:inline-flex;gap:2px}
-.star{font-size:13px;line-height:1}
+.star{font-size:15px;line-height:1}
 .star.on{color:var(--gold)}
 .star.off{color:var(--bg4)}
 .q-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .q-ctx{background:var(--amber-bg);border-left:2px solid var(--amber);border-radius:0 8px 8px 0;padding:9px 12px;margin-bottom:14px}
 .q-ctx-label{font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.5px;margin-bottom:4px}
 .q-ctx-text{font-size:13px;color:rgba(212,148,42,.8);line-height:1.5}
-.q-text{font-size:16px;font-weight:600;line-height:1.7;color:var(--text);margin-bottom:18px}
+.q-text{font-size:19px;font-weight:600;line-height:1.7;color:var(--text);margin-bottom:18px}
 .opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .opt{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:border-color var(--tr),background var(--tr)}
 .opt:hover{border-color:var(--border2);background:var(--bg4)}
 .opt.correct{border-color:var(--green);background:var(--green-bg)}
 .opt.wrong{border-color:var(--red);background:var(--red-bg)}
 .opt.disabled{cursor:default;pointer-events:none}
-.opt-key{width:24px;height:24px;flex-shrink:0;border-radius:5px;border:1px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);margin-top:1px}
-.opt-text{font-size:14px;line-height:1.55}
+.opt-key{width:28px;height:28px;flex-shrink:0;border-radius:5px;border:1px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);margin-top:1px}
+.opt-text{font-size:17px;line-height:1.55}
 .result{display:none}
 .result.show{display:block}
-.verdict{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:12px}
+.verdict{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;font-size:17px;font-weight:700;margin-bottom:12px}
 .verdict-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(77,190,150,.3)}
 .verdict-ng{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,88,88,.3)}
-.explain-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:14px;line-height:1.75;color:var(--text2);margin-bottom:10px}
+.explain-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-size:16px;line-height:1.75;color:var(--text2);margin-bottom:10px}
 .sec-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px}
-.know-box{border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 8px 8px 0;padding:11px 14px;font-size:14px;line-height:1.7;color:var(--text2);margin-bottom:10px}
+.know-box{border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 8px 8px 0;padding:13px 16px;font-size:16px;line-height:1.7;color:var(--text2);margin-bottom:10px}
 .journal{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
 .journal th{text-align:left;padding:5px 10px;background:var(--bg3);color:var(--text3);font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
 .journal td{padding:7px 10px;border-bottom:1px solid var(--border)}
@@ -169,7 +169,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .j-cr{color:var(--green);padding-left:24px}
 .j-amt{text-align:right;color:var(--gold);font-weight:600}
 .action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);border:none;transition:all var(--tr)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);border:none;transition:all var(--tr)}
 .btn:disabled{opacity:.4;cursor:default}
 .btn-primary{background:var(--gold);color:#0d0d10}
 .btn-primary:hover:not(:disabled){background:var(--gold2)}
@@ -183,14 +183,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .q-dot.cur{background:var(--gold)}
 .q-dot.wrong-dot{background:var(--red)}
 .chat-history{max-height:360px;overflow-y:auto;margin-bottom:12px}
-.chat-msg{padding:10px 13px;border-radius:9px;margin-bottom:8px;font-size:14px;line-height:1.65}
+.chat-msg{padding:12px 15px;border-radius:9px;margin-bottom:8px;font-size:16px;line-height:1.65}
 .msg-user{background:var(--bg3);border:1px solid var(--border)}
 .msg-ai{background:var(--gold-bg);border:1px solid rgba(201,169,110,.15)}
 .msg-label{font-size:11px;font-weight:700;margin-bottom:5px;letter-spacing:.5px}
 .msg-user .msg-label{color:var(--text3)}
 .msg-ai .msg-label{color:var(--gold)}
 .chat-row{display:flex;gap:8px}
-.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px 13px;font-size:14px;color:var(--text);font-family:var(--font);outline:none;transition:border-color var(--tr)}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:12px 15px;font-size:16px;color:var(--text);font-family:var(--font);outline:none;transition:border-color var(--tr)}
 .chat-input:focus{border-color:var(--gold)}
 .chat-input::placeholder{color:var(--text3)}
 .phase-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
@@ -204,10 +204,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .radar-wrap{position:relative;height:320px}
 .concept-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
 .concept-row:last-child{border-bottom:none}
-.concept-name{font-size:13px;color:var(--text);min-width:170px;flex-shrink:0}
+.concept-name{font-size:15px;color:var(--text);min-width:170px;flex-shrink:0}
 .concept-bar-wrap{flex:1;background:var(--bg4);border-radius:3px;height:6px}
 .concept-bar{height:6px;border-radius:3px;transition:width .6s ease}
-.concept-pct{font-size:12px;color:var(--text2);min-width:36px;text-align:right;font-weight:600}
+.concept-pct{font-size:14px;color:var(--text2);min-width:36px;text-align:right;font-weight:600}
 .concept-flag{font-size:11px;min-width:55px;text-align:right}
 .history-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
 .history-item:last-child{border-bottom:none}
@@ -216,8 +216,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .history-stat{color:var(--gold);font-weight:700;min-width:60px;text-align:right}
 .review-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:13px 16px;margin-bottom:9px;cursor:pointer;transition:border-color var(--tr)}
 .review-item:hover{border-color:var(--border2)}
-.review-q{font-size:14px;color:var(--text);margin-bottom:5px;line-height:1.5}
-.review-meta{display:flex;gap:10px;font-size:12px;color:var(--text3)}
+.review-q{font-size:16px;color:var(--text);margin-bottom:5px;line-height:1.5}
+.review-meta{display:flex;gap:10px;font-size:14px;color:var(--text3)}
 .setup-wrap{max-width:520px}
 .setup-step{display:flex;gap:14px;margin-bottom:20px}
 .setup-num{width:28px;height:28px;border-radius:50%;background:var(--gold-bg);border:1px solid rgba(201,169,110,.4);color:var(--gold);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -239,8 +239,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
 .report-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center}
-.kpi-val{font-size:24px;font-weight:800;color:var(--gold)}
-.kpi-label{font-size:11px;color:var(--text3);margin-top:5px;font-weight:600;line-height:1.5}
+.kpi-val{font-size:28px;font-weight:800;color:var(--gold)}
+.kpi-label{font-size:13px;color:var(--text3);margin-top:5px;font-weight:600;line-height:1.5}
 .assessment-box{background:var(--bg3);border-left:2px solid var(--red);border-radius:0 8px 8px 0;padding:13px 16px;font-size:14px;line-height:1.75;color:var(--text2);margin-bottom:10px}
 .more-wrap{text-align:center;padding:16px 0}
 .hamburger{display:none;background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;padding:4px}
@@ -283,7 +283,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <nav class="nav">
     <div class="nav-item active" onclick="showSection('learn')"><span class="nav-icon">📖</span> 오늘의 학습</div>
-    <div class="nav-item" onclick="showSection('review')"><span class="nav-icon">🔁</span> 오답 복습 <span class="nav-badge" id="review-badge" style="display:none">0</span></div>
+    <div class="nav-item" onclick="showSection('review')"><span class="nav-icon">🔁</span> 오답 복습</div>
     <div class="nav-item" onclick="showSection('progress')"><span class="nav-icon">📊</span> 주간 리포트</div>
     <div class="nav-item" onclick="showSection('concepts')"><span class="nav-icon">🧠</span> 개념 이해도</div>
     <div class="nav-item" onclick="showSection('history')"><span class="nav-icon">🗓</span> 학습 이력</div>
@@ -560,7 +560,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
         <!-- 연간 잔디밭 -->
         <div id="hist-year-view" style="display:none">
-          <div style="margin:12px 0 8px;font-size:12px;color:var(--text3)">색 진하기 = 풀이량 · 녹색 = 정답률 높음 · 주황 = 정답률 낮음</div>
+          <div style="margin:12px 0 8px;font-size:12px;color:var(--text3)">✅ 20문제 이상 완료 &nbsp;·&nbsp; 🔸 1~19문제 부분 학습</div>
           <div style="overflow-x:auto">
             <div id="hist-grass" style="display:inline-flex;gap:3px"></div>
           </div>
@@ -579,13 +579,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="card-title">🎯 내 목표</div>
         <div class="card-sub">최종목표(기업진단+Forecast)까지의 달성 현황</div>
         <!-- 전체 진도 -->
-        <div style="background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
+        <div style="background:var(--gold-bg);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:16px;margin-bottom:16px;text-align:center">
           <div style="font-size:12px;color:var(--text2);margin-bottom:6px">최종목표(기업진단+Forecast)까지</div>
           <div style="font-size:42px;font-weight:900;color:var(--gold);line-height:1" id="goal-pct">0%</div>
           <div style="height:6px;background:var(--border);border-radius:3px;margin-top:12px">
             <div id="goal-pct-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .6s ease;width:0%"></div>
           </div>
         </div>
+        <!-- 산정 로직 설명 -->
+        <div id="goal-logic" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.9"></div>
         <!-- Phase별 목표 기준표 -->
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Phase별 달성 기준 및 현황</div>
         <div id="goal-phase-table"></div>
@@ -720,6 +722,7 @@ const DEFAULT_STATE = {
   streakDays: 1,
   lastStudyDate: null,
   studyHistory: [],
+  answerLog: [], // {phase, correct, date} — Phase별 최근 N문제 정답률 계산용
   conceptScores: {
     debit_credit:{a:0,c:0}, five_accounts:{a:0,c:0},
     basic_journal:{a:0,c:0}, asset_expense:{a:0,c:0},
@@ -820,11 +823,13 @@ async function mergeWithCloud(uid) {
       merged.wrongQ = mergeArraysByKey(cloud.wrongQ, S.wrongQ, 'q');
       merged.studyHistory = mergeArraysByKey(cloud.studyHistory, S.studyHistory, 'date');
       merged.seenQuestions = [...(cloud.seenQuestions||[]), ...(S.seenQuestions||[])].slice(-200);
+      merged.answerLog = [...(cloud.answerLog||[]), ...(S.answerLog||[])];
     } else {
       merged = deepMerge(JSON.parse(JSON.stringify(S)), cloud);
       merged.wrongQ = mergeArraysByKey(S.wrongQ, cloud.wrongQ, 'q');
       merged.studyHistory = mergeArraysByKey(S.studyHistory, cloud.studyHistory, 'date');
       merged.seenQuestions = [...(S.seenQuestions||[]), ...(cloud.seenQuestions||[])].slice(-200);
+      merged.answerLog = [...(S.answerLog||[]), ...(cloud.answerLog||[])];
     }
     // conceptScores는 둘 중 더 큰 시도횟수를 채택 (각 개념별로 더 많이 푼 쪽 데이터 신뢰)
     merged.conceptScores = {};
@@ -941,6 +946,15 @@ function buildSysPrompt() {
   return `당신은 재무회계 학습 AI입니다. 최종목표: 재무제표로 이직 대상 기업 건강진단+Forecast.${profileCtx}
 
 최근 기업 이슈: SK하이닉스 HBM 초호황·FCF압박, 이마트 적자·자산매각, 네이버/카카오 AI투자비 급증, HD현대 수주잔고 역대최고, 중소IT서비스업 원가율95%+.
+
+[해설 작성 원칙 — 반드시 준수]
+재무 지표나 기준이 포함된 해설을 작성할 때는 아래 3개 관점을 순서대로 비교 설명할 것:
+1. 일반(아카데믹) 기준 — 교과서·학계에서 통용되는 보편적 기준
+2. IT업계 기준 — IT/소프트웨어 산업 전반의 특성을 반영한 기준
+3. SI업종 기준 — 시스템통합(SI) 특유의 구조(장기 프로젝트, 선수금, 높은 원가율 등)를 반영한 기준
+
+단, 세 기준 간 차이가 미미하거나 없을 경우에는 공통 기준 하나만 설명하고 "업종 간 차이 없음"을 간략히 언급.
+예시 형식: "부채비율 250%는 일반적으로는 재무 위험 신호이지만, IT업계에서는 무형자산 비중이 높아 200~300%도 허용되는 경우가 많으며, SI업종에서는 선수금·계약부채가 부채에 포함되어 300% 이상도 정상 범위로 볼 수 있습니다."
 
 규칙:
 - Phase 1·2: 반드시 객관식 (options 4개, answer 0~3)
@@ -1393,7 +1407,10 @@ function recordAnswer(i, correct) {
     S.conceptScores[q.conceptKey].a++;
     if (correct) S.conceptScores[q.conceptKey].c++;
   }
-  // 최근 출제 이력 기록 (중복 문제 방지용 — 무제한 누적, 표시/전달 시에만 최근 N개로 제한)
+  // answerLog: Phase별 최근 N문제 정답률 계산용
+  if (!Array.isArray(S.answerLog)) S.answerLog = [];
+  S.answerLog.push({ phase: q.phase, correct: correct ? 1 : 0, date: today() });
+  // 최근 출제 이력 기록 (중복 문제 방지용)
   if (!Array.isArray(S.seenQuestions)) S.seenQuestions = [];
   S.seenQuestions.push({
     q: q.question.slice(0, 60),
@@ -1405,40 +1422,47 @@ function recordAnswer(i, correct) {
 }
 
 // ═══════════════════════════════════════════
-// 진도율 시스템
-// Phase별 목표: 문제 수 달성 + 정답률 달성 → 두 조건 모두 충족해야 100%
-// Phase 진도(%) = min(실제풀이/목표문제수, 1) × min(실제정답률/목표정답률, 1) × 100
+// 진도율 시스템 — answerLog 기반 최근 N문제 정답률
+// Phase 진도(%) = 최근 N문제 정답률 / 목표 정답률 × 100 (최대 100%)
+// N문제 미달 시: 실제 풀이수 / 목표 문제수 × 정답률 달성도 × 100
 // ═══════════════════════════════════════════
 const PHASE_GOALS = {
-  1: { count: 100, accuracy: 0.95 }, // P1: 100문제, 95% 정답률
-  2: { count: 100, accuracy: 0.90 }, // P2: 100문제, 90% 정답률
-  3: { count:  80, accuracy: 0.85 }, // P3:  80문제, 85% 정답률
-  4: { count:  60, accuracy: 0.80 }, // P4:  60문제, 80% 정답률
+  1: { count: 100, accuracy: 0.95 },
+  2: { count: 100, accuracy: 0.90 },
+  3: { count:  80, accuracy: 0.85 },
+  4: { count:  60, accuracy: 0.80 },
 };
 const PHASE_WEIGHTS = { p1: 0.10, p2: 0.20, p3: 0.30, p4: 0.40 };
 
-// phaseProgress: Phase별 진도(0~100), 문제수+정답률 두 축의 곱으로 계산
+// Phase별 answerLog에서 최근 N개 추출 후 통계 계산
+function getPhaseLogStats(ph) {
+  const log = (S.answerLog || []).filter(e => e.phase === ph);
+  const g = PHASE_GOALS[ph];
+  const total = log.length; // 누적 전체 풀이수
+  const recent = log.slice(-g.count); // 최근 N개
+  const recentCorrect = recent.filter(e => e.correct).length;
+  const recentAcc = recent.length ? recentCorrect / recent.length : 0;
+  return { total, recent: recent.length, recentCorrect, recentAcc };
+}
+
 function recalcPhaseProgress() {
-  const sums = {1:{a:0,c:0}, 2:{a:0,c:0}, 3:{a:0,c:0}, 4:{a:0,c:0}};
-  for (const [key, meta] of Object.entries(CONCEPT_META)) {
-    const s = S.conceptScores[key];
-    if (!s) continue;
-    sums[meta.phase].a += s.a;
-    sums[meta.phase].c += s.c;
-  }
   const pp = S.phaseProgress;
   [1,2,3,4].forEach(ph => {
     const g = PHASE_GOALS[ph];
-    const sum = sums[ph];
-    if (!sum.a) { pp['p'+ph] = 0; return; }
-    const countRatio    = Math.min(sum.a / g.count, 1);        // 문제 수 달성도 (0~1)
-    const accuracyRatio = Math.min((sum.c / sum.a) / g.accuracy, 1); // 정답률 달성도 (0~1)
-    pp['p'+ph] = Math.round(countRatio * accuracyRatio * 100);
+    const st = getPhaseLogStats(ph);
+    if (!st.total) { pp['p'+ph] = 0; return; }
+    if (st.recent < g.count) {
+      // 목표 문제수 미달: 풀이수 달성도 × 정답률 달성도
+      const countRatio = st.recent / g.count;
+      const accRatio = Math.min(st.recentAcc / g.accuracy, 1);
+      pp['p'+ph] = Math.round(countRatio * accRatio * 100);
+    } else {
+      // 목표 문제수 달성: 정답률 달성도만 반영
+      pp['p'+ph] = Math.round(Math.min(st.recentAcc / g.accuracy, 1) * 100);
+    }
   });
 }
 
-// 전체 진도 = Phase별 가중평균 (P1:10% P2:20% P3:30% P4:40%)
-// 340문제 모두 목표 정답률 달성 시 100%
 function overallProgress() {
   const pp = S.phaseProgress;
   return Math.round(
@@ -1449,25 +1473,23 @@ function overallProgress() {
   );
 }
 
-// Phase별 상세 현황 (진도 화면 카드에서 사용)
+// getPhaseDetail: 내 목표 화면용 상세 정보
 function getPhaseDetail(ph) {
-  const sums = {a:0, c:0};
-  for (const [key, meta] of Object.entries(CONCEPT_META)) {
-    if (meta.phase !== ph) continue;
-    const s = S.conceptScores[key];
-    if (!s) continue;
-    sums.a += s.a; sums.c += s.c;
-  }
   const g = PHASE_GOALS[ph];
-  const acc = sums.a ? Math.round(sums.c / sums.a * 100) : 0;
+  const st = getPhaseLogStats(ph);
+  const recentAccPct = st.recent ? Math.round(st.recentAcc * 100) : 0;
+  const goalAccPct = Math.round(g.accuracy * 100);
+  const accDone = st.recent >= g.count && st.recentAcc >= g.accuracy;
+  const countDone = st.total >= g.count;
   return {
-    attempted: sums.a,           // 풀이 수
-    correct: sums.c,             // 정답 수
-    accuracy: acc,               // 실제 정답률(%)
-    goalCount: g.count,          // 목표 문제 수
-    goalAccuracy: Math.round(g.accuracy * 100), // 목표 정답률(%)
-    countDone: sums.a >= g.count,
-    accDone: sums.a > 0 && (sums.c / sums.a) >= g.accuracy,
+    total: st.total,              // 누적 전체 풀이수
+    recent: st.recent,            // 최근 N개 중 실제 반영된 수
+    recentCorrect: st.recentCorrect,
+    accuracy: recentAccPct,       // 최근 N문제 정답률(%)
+    goalCount: g.count,
+    goalAccuracy: goalAccPct,
+    countDone,
+    accDone,
   };
 }
 
@@ -1669,18 +1691,58 @@ function finalizeDiag() {
 function renderReview() {
   const list = document.getElementById('review-list');
   if (!S.wrongQ.length) {
-    list.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:16px 0">오답이 없습니다.</div>';
+    list.innerHTML = '<div style="color:var(--text3);font-size:15px;padding:20px 0">오답이 없습니다. 계속 학습해보세요! 🎉</div>';
     return;
   }
-  list.innerHTML = S.wrongQ.map((w,i) => `
-    <div class="review-item" onclick="startReview(${i})">
-      <div class="review-q">${esc(w.q)}</div>
-      <div class="review-meta">
-        <span>Phase ${w.phase}</span><span>${w.type}</span>
-        <span style="color:var(--red)">오답 ${w.wrongCount}회</span>
-        <span>${w.lastWrong}</span>
-      </div>
-    </div>`).join('');
+
+  // 개념(conceptKey)별로 그룹화
+  const groups = {};
+  S.wrongQ.forEach((w, i) => {
+    const key = w.conceptKey || 'unknown';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push({...w, idx: i});
+  });
+
+  // 개념 메타 정보 활용
+  const getConceptLabel = (key) => {
+    const meta = CONCEPT_META[key];
+    return meta ? `${meta.label} (Phase ${meta.phase})` : key;
+  };
+
+  // Phase 순 → 오답 수 많은 순으로 정렬
+  const sortedGroups = Object.entries(groups).sort((a, b) => {
+    const phA = CONCEPT_META[a[0]]?.phase || 9;
+    const phB = CONCEPT_META[b[0]]?.phase || 9;
+    if (phA !== phB) return phA - phB;
+    return b[1].reduce((s,w)=>s+w.wrongCount,0) - a[1].reduce((s,w)=>s+w.wrongCount,0);
+  });
+
+  list.innerHTML = sortedGroups.map(([conceptKey, items]) => {
+    const totalWrong = items.reduce((s,w) => s+w.wrongCount, 0);
+    const meta = CONCEPT_META[conceptKey];
+    const color = meta ? meta.color : 'var(--text3)';
+    const phaseLabel = meta ? `Phase ${meta.phase}` : '';
+
+    const itemsHtml = items.map(w => `
+      <div class="review-item" onclick="startReview(${w.idx})" style="margin-bottom:8px;border-radius:8px">
+        <div class="review-q" style="font-size:14px">${esc(w.q)}</div>
+        <div class="review-meta" style="margin-top:6px">
+          <span>${w.type || ''}</span>
+          <span style="color:var(--red);font-weight:600">오답 ${w.wrongCount}회</span>
+          <span style="color:var(--text3)">${w.lastWrong}</span>
+        </div>
+      </div>`).join('');
+
+    return `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+          <span style="font-size:15px;font-weight:700;color:${color}">${getConceptLabel(conceptKey)}</span>
+          <span style="font-size:12px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:10px">${phaseLabel}</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--red);font-weight:600">오답 ${totalWrong}회</span>
+        </div>
+        ${itemsHtml}
+      </div>`;
+  }).join('');
 }
 
 async function startReview(idx) {
@@ -1716,22 +1778,36 @@ function renderGoal() {
   document.getElementById('goal-pct').textContent = pct + '%';
   document.getElementById('goal-pct-bar').style.width = pct + '%';
 
+  document.getElementById('goal-logic').innerHTML = `
+    <div style="margin-bottom:4px">· <b>Phase 진도</b> : 최근 N문제의 정답률 ÷ 목표 정답률</div>
+    <div style="padding-left:12px;color:var(--text3);margin-bottom:2px">P1 : 최근 100문제, 목표 정답률 95%</div>
+    <div style="padding-left:12px;color:var(--text3);margin-bottom:2px">P2 : 최근 100문제, 목표 정답률 90%</div>
+    <div style="padding-left:12px;color:var(--text3);margin-bottom:2px">P3 : 최근 80문제, 목표 정답률 85%</div>
+    <div style="padding-left:12px;color:var(--text3);margin-bottom:8px">P4 : 최근 60문제, 목표 정답률 80%</div>
+    <div>· <b>전체 진도</b> : P1×10% + P2×20% + P3×30% + P4×40%의 가중합계</div>`;
+
   const phases = [
     {ph:1, label:'Phase 1', sub:'차변·대변·분개 기초',     color:'#9b7fd4', weight:10},
     {ph:2, label:'Phase 2', sub:'손익계산서·B/S·현금흐름', color:'#4dbe96', weight:20},
     {ph:3, label:'Phase 3', sub:'DART 분석·회계처리 판단', color:'#c9a96e', weight:30},
     {ph:4, label:'Phase 4', sub:'기업 진단·Forecast',       color:'#e05858', weight:40},
   ];
-
   const pp = S.phaseProgress;
   document.getElementById('goal-phase-table').innerHTML = phases.map(p => {
     const d = getPhaseDetail(p.ph);
     const phasePct = pp['p'+p.ph];
-    const countStatus = d.countDone ? '✅' : d.attempted > 0 ? '🔸' : '⬜';
-    const accStatus   = d.accDone   ? '✅' : d.attempted > 0 ? '🔸' : '⬜';
-    const remainCount = Math.max(0, d.goalCount - d.attempted);
-    const remainAcc   = d.accDone ? 0 : d.goalAccuracy - d.accuracy;
-
+    const countIcon = d.countDone ? '✅' : d.total > 0 ? '🔸' : '⬜';
+    const accIcon   = d.accDone   ? '✅' : d.recent > 0 ? '🔸' : '⬜';
+    const countLabel = d.total > 0
+      ? `누적 ${d.total}문제 · 최근 ${d.recent}/${d.goalCount}문제 반영`
+      : '아직 미시작';
+    const countRemain = d.recent < d.goalCount
+      ? `${d.goalCount - d.recent}문제 더 필요`
+      : '문제수 달성 ✓';
+    const accLabel = d.recent > 0 ? `${d.accuracy}% / ${d.goalAccuracy}%` : `— / ${d.goalAccuracy}%`;
+    const accRemain = d.accDone ? '정답률 달성 ✓'
+      : d.recent > 0 ? `${d.goalAccuracy - d.accuracy}%p 더 필요`
+      : '아직 미시작';
     return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div>
@@ -1748,14 +1824,14 @@ function renderGoal() {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
         <div style="background:var(--bg3);border-radius:8px;padding:10px">
-          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">📝 문제 수</div>
-          <div style="color:var(--text);font-weight:700">${d.attempted} / ${d.goalCount}문제 ${countStatus}</div>
-          ${!d.countDone ? `<div style="color:var(--text3);font-size:11px;margin-top:2px">${remainCount}문제 더 필요</div>` : '<div style="color:var(--green);font-size:11px;margin-top:2px">달성!</div>'}
+          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">📝 문제 수 ${countIcon}</div>
+          <div style="color:var(--text);font-weight:700;margin-bottom:3px">${countLabel}</div>
+          <div style="color:var(--text3);font-size:11px">${countRemain}</div>
         </div>
         <div style="background:var(--bg3);border-radius:8px;padding:10px">
-          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">🎯 정답률</div>
-          <div style="color:var(--text);font-weight:700">${d.attempted ? d.accuracy+'%' : '—'} / ${d.goalAccuracy}% ${accStatus}</div>
-          ${d.attempted && !d.accDone ? `<div style="color:var(--text3);font-size:11px;margin-top:2px">${remainAcc}%p 더 필요</div>` : d.accDone ? '<div style="color:var(--green);font-size:11px;margin-top:2px">달성!</div>' : '<div style="color:var(--text3);font-size:11px;margin-top:2px">아직 미시작</div>'}
+          <div style="color:var(--text3);margin-bottom:4px;font-size:11px">🎯 정답률 ${accIcon}</div>
+          <div style="color:var(--text);font-weight:700;margin-bottom:3px">${accLabel}</div>
+          <div style="color:var(--text3);font-size:11px">${accRemain}</div>
         </div>
       </div>
     </div>`;
@@ -1780,10 +1856,10 @@ function renderProgress() {
   document.getElementById('phase-grid').innerHTML = phases.map(p => {
     const d = getPhaseDetail(p.ph);
     const pct = pp[p.key];
-    const countIcon  = d.countDone ? '✓' : `${d.attempted}/${d.goalCount}`;
-    const accIcon    = d.accDone   ? '✓' : `${d.accuracy}%/${d.goalAccuracy}%`;
+    const countIcon = d.countDone ? '✓' : `${d.recent}/${d.goalCount}`;
+    const accIcon   = d.accDone   ? '✓' : `${d.accuracy}%/${d.goalAccuracy}%`;
     const countColor = d.countDone ? 'var(--green)' : 'var(--text3)';
-    const accColor   = d.accDone   ? 'var(--green)' : (d.attempted > 0 && d.accuracy >= d.goalAccuracy * 0.8 ? 'var(--amber)' : 'var(--text3)');
+    const accColor   = d.accDone   ? 'var(--green)' : (d.recent > 0 && d.accuracy >= d.goalAccuracy * 0.8 ? 'var(--amber)' : 'var(--text3)');
     return `<div class="phase-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
         <div>
@@ -1794,7 +1870,7 @@ function renderProgress() {
       </div>
       <div class="bar-wrap" style="margin-bottom:8px"><div class="bar-fill" style="width:${pct}%;background:${p.color}"></div></div>
       <div style="display:flex;gap:12px;font-size:11px">
-        <span style="color:${countColor}">📝 문제 ${countIcon}</span>
+        <span style="color:${countColor}">📝 최근 ${countIcon}</span>
         <span style="color:${accColor}">🎯 정답률 ${accIcon}</span>
       </div>
     </div>`;
@@ -1957,26 +2033,31 @@ function renderCalendar() {
     const isToday = (today.getFullYear()===year && today.getMonth()===month && today.getDate()===d);
     const isFuture = new Date(year, month, d) > today;
 
-    let bg = 'var(--bg4)';
-    let textColor = 'var(--text3)';
-    let title = '';
-    if (entry && entry.total > 0) {
-      // 풀이량으로 투명도, 정답률로 색상 (녹색↔주황)
-      const intensity = Math.min(entry.total / 20, 1);
-      const hue = Math.round(entry.acc * 1.2); // 0%=0°(빨), 100%=120°(녹)
-      bg = `hsla(${hue},60%,45%,${0.25 + intensity*0.65})`;
-      textColor = 'var(--text)';
-      title = `${entry.total}문제 · ${entry.acc}%`;
+    const todayBorder = isToday ? 'border:2px solid var(--gold)' : 'border:1px solid var(--border)';
+    const opacity = isFuture ? 'opacity:0.3' : '';
+
+    let stamp = '';
+    let bg = 'var(--bg3)';
+
+    if (entry && entry.total >= 20) {
+      // 20문제 이상 — 완료 도장 (초록)
+      bg = 'rgba(77,190,150,0.12)';
+      stamp = `<div style="font-size:22px;line-height:1">✅</div>
+               <div style="font-size:9px;color:var(--green);margin-top:2px;font-weight:600">${entry.total}문제</div>
+               <div style="font-size:9px;color:var(--text3)">${entry.acc}%</div>`;
+    } else if (entry && entry.total >= 1) {
+      // 1~19문제 — 부분 도장 (주황)
+      bg = 'rgba(212,148,42,0.1)';
+      stamp = `<div style="font-size:22px;line-height:1">🔸</div>
+               <div style="font-size:9px;color:var(--amber);margin-top:2px;font-weight:600">${entry.total}문제</div>
+               <div style="font-size:9px;color:var(--text3)">${entry.acc}%</div>`;
     }
 
-    const todayBorder = isToday ? 'border:1px solid var(--gold)' : '';
-    const opacity = isFuture ? 'opacity:0.3' : '';
     html += `<div onclick="showDayDetail('${key}')"
-      style="aspect-ratio:1;border-radius:6px;background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${entry?'pointer':'default'};${todayBorder};${opacity};transition:transform .1s"
-      title="${title}"
-      onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">
-      <div style="font-size:10px;color:${textColor};font-weight:${isToday?'700':'400'}">${d}</div>
-      ${entry ? `<div style="font-size:9px;color:${textColor};opacity:.8">${entry.total}</div>` : ''}
+      style="aspect-ratio:1;border-radius:8px;background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${entry?'pointer':'default'};${todayBorder};${opacity};transition:transform .1s;padding:4px"
+      onmouseenter="this.style.transform='scale(1.05)'" onmouseleave="this.style.transform='scale(1)'">
+      ${stamp || `<div style="font-size:11px;color:var(--text3)">${d}</div>`}
+      ${!stamp ? '' : `<div style="font-size:9px;color:var(--text3);margin-top:1px">${d}일</div>`}
     </div>`;
   }
   grid.innerHTML = html;
@@ -1988,8 +2069,10 @@ function showDayDetail(key) {
   const entry = map[key];
   const detail = document.getElementById('hist-day-detail');
   if (!entry || !entry.total) { detail.style.display='none'; return; }
+  const stamp = entry.total >= 20 ? '✅ 학습 완료' : '🔸 부분 학습';
   detail.style.display = 'block';
   detail.innerHTML = `<span style="color:var(--gold);font-weight:700">${key}</span>
+    &nbsp;·&nbsp; ${stamp}
     &nbsp;·&nbsp; ${entry.total}문제 풀이
     &nbsp;·&nbsp; 정답률 <span style="color:var(--green);font-weight:700">${entry.acc}%</span>
     &nbsp;·&nbsp; 정답 ${entry.correct}개`;
@@ -2034,15 +2117,18 @@ function renderGrass() {
   container.innerHTML = weeks.map(week => {
     const cells = week.map(day => {
       if (!day.isThisYear || day.isFuture) {
-        return `<div style="width:11px;height:11px;border-radius:2px;background:var(--bg4);opacity:0.3"></div>`;
+        return `<div style="width:11px;height:11px;border-radius:2px;background:var(--bg3);opacity:0.3"></div>`;
       }
-      let bg = 'var(--bg4)';
-      if (day.entry && day.entry.total > 0) {
-        const intensity = Math.min(day.entry.total / 20, 1);
-        const hue = Math.round(day.entry.acc * 1.2);
-        bg = `hsla(${hue},60%,45%,${0.3 + intensity*0.6})`;
+      let bg = 'var(--bg3)';
+      let title = day.key;
+      if (day.entry && day.entry.total >= 20) {
+        bg = 'rgba(77,190,150,0.7)';
+        title += ` · ✅ ${day.entry.total}문제 ${day.entry.acc}%`;
+      } else if (day.entry && day.entry.total >= 1) {
+        bg = 'rgba(212,148,42,0.6)';
+        title += ` · 🔸 ${day.entry.total}문제 ${day.entry.acc}%`;
       }
-      return `<div title="${day.key}${day.entry?' · '+day.entry.total+'문제 '+day.entry.acc+'%':''}"
+      return `<div title="${title}"
         style="width:11px;height:11px;border-radius:2px;background:${bg};cursor:${day.entry?'pointer':'default'}"
         onclick="showCalMonthFromGrass('${day.key}')"></div>`;
     }).join('');
@@ -2260,7 +2346,9 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 }
 function today() {
-  return new Date().toLocaleDateString('ko-KR');
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
 }
 function now() {
   return new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
