@@ -99,7 +99,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tab{padding:13px 20px;font-size:16px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--tr);font-weight:500}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
-.content{flex:1;padding:28px 34px;max-width:980px;overflow-y:auto}
+.content{flex:1;padding:28px 34px;max-width:980px;overflow-y:auto;font-size:15px}
 .section{display:none}
 .section.active{display:block}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 26px;margin-bottom:16px}
@@ -122,7 +122,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .q-ctx{background:var(--amber-bg);border-left:2px solid var(--amber);border-radius:0 8px 8px 0;padding:9px 12px;margin-bottom:14px}
 .q-ctx-label{font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.5px;margin-bottom:4px}
 .q-ctx-text{font-size:13px;color:rgba(212,148,42,.8);line-height:1.5}
-.q-text{font-size:19px;font-weight:600;line-height:1.7;color:var(--text);margin-bottom:18px}
+.q-text{font-size:18px;font-weight:600;line-height:1.7;color:var(--text);margin-bottom:18px}
 .opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .opt{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:border-color var(--tr),background var(--tr)}
 .opt:hover{border-color:var(--border2);background:var(--bg4)}
@@ -130,15 +130,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .opt.wrong{border-color:var(--red);background:var(--red-bg)}
 .opt.disabled{cursor:default;pointer-events:none}
 .opt-key{width:28px;height:28px;flex-shrink:0;border-radius:5px;border:1px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);margin-top:1px}
-.opt-text{font-size:17px;line-height:1.55}
+.opt-text{font-size:16px;line-height:1.55}
 .result{display:none}
 .result.show{display:block}
-.verdict{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;font-size:17px;font-weight:700;margin-bottom:12px}
+.verdict{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:12px}
 .verdict-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(77,190,150,.3)}
 .verdict-ng{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,88,88,.3)}
-.explain-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-size:16px;line-height:1.75;color:var(--text2);margin-bottom:10px}
+.explain-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-size:15px;line-height:1.75;color:var(--text2);margin-bottom:10px}
 .sec-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px}
-.know-box{border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 8px 8px 0;padding:13px 16px;font-size:16px;line-height:1.7;color:var(--text2);margin-bottom:10px}
+.know-box{border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 8px 8px 0;padding:13px 16px;font-size:15px;line-height:1.7;color:var(--text2);margin-bottom:10px}
 .journal{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
 .journal th{text-align:left;padding:5px 10px;background:var(--bg3);color:var(--text3);font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
 .journal td{padding:7px 10px;border-bottom:1px solid var(--border)}
@@ -1442,7 +1442,7 @@ function recordAnswer(i, correct) {
   }
   // answerLog: Phase별 최근 N문제 정답률 계산용
   if (!Array.isArray(S.answerLog)) S.answerLog = [];
-  S.answerLog.push({ phase: q.phase, correct: correct ? 1 : 0, date: today() });
+  S.answerLog.push({ phase: q.phase, correct: correct ? 1 : 0, date: today(), conceptKey: q.conceptKey || '' });
   // Firebase 문서 크기 제한(1MB) 방지 — 전체 4000개 초과 시 가장 오래된 항목 제거
   if (S.answerLog.length > 4000) {
     S.answerLog = S.answerLog.slice(-4000);
@@ -1934,10 +1934,17 @@ const CONCEPT_META = {
   industry_analysis:   {label:'업종별 재무구조 분석',   phase:4, color:'#e05858', desc:'IT서비스·제조·유통 등 업종마다 다른 재무구조의 특성을 이해하고 비교 기준으로 활용'},
 };
 
+// 개념별 정답률 — answerLog 기반 최근 N문제 (Phase 목표 문제수 ÷ 해당 Phase 개념 수)
 function conceptPct(key) {
-  const s = S.conceptScores[key];
-  if (!s || s.a === 0) return S.phaseProgress['p'+CONCEPT_META[key].phase] * 0.05 | 0;
-  return Math.round(s.c / s.a * 100);
+  const meta = CONCEPT_META[key];
+  if (!meta) return 0;
+  const log = (S.answerLog || []).filter(e => e.conceptKey === key);
+  if (!log.length) return 0;
+  // 개념별 최근 N개: Phase 목표 문제수 ÷ 해당 Phase 개념 수
+  const phaseConceptCount = Object.values(CONCEPT_META).filter(m => m.phase === meta.phase).length;
+  const n = Math.ceil(PHASE_GOALS[meta.phase].count / phaseConceptCount);
+  const recent = log.slice(-n);
+  return Math.round(recent.filter(e => e.correct).length / recent.length * 100);
 }
 
 let radarChart = null, histChart = null;
@@ -2316,7 +2323,7 @@ const SECTION_META = {
   learn:    {title:'오늘의 학습',     sub:'Phase 믹스 · 시사 연계 · 기업 진단 훈련'},
   review:   {title:'오답 복습',       sub:'틀린 개념은 완전히 이해할 때까지 반복'},
   progress: {title:'주간 리포트',     sub:'AI 냉정 진단 — 칭찬 없이, 갭(Gap) 중심으로'},
-  concepts: {title:'개념 이해도 맵',  sub:'Phase 1~4 · 개념별 현재 숙련도 시각화'},
+  concepts: {title:'개념 이해도 맵',  sub:'Phase 1~4 · 최근 풀이 기준 개념별 정답률'},
   history:  {title:'학습 이력',       sub:'날짜별 학습 기록'},
   roadmap:  {title:'학습 로드맵',     sub:'My FinLab 설계 철학과 Phase 1~4 구조'},
   goal:     {title:'내 목표',         sub:'최종목표(기업진단+Forecast)까지의 달성 현황'},
