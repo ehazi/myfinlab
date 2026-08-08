@@ -721,6 +721,7 @@ const DEFAULT_STATE = {
   todayStats: {total:0, correct:0},
   streakDays: 1,
   lastStudyDate: null,
+  todayStudied: false,
   studyHistory: [],
   answerLog: [], // {phase, correct, date} — Phase별 최근 N문제 정답률 계산용
   conceptScores: {
@@ -1403,6 +1404,17 @@ function recordAnswer(i, correct) {
       S.wrongQ.find(w => w.q === q.question).wrongCount++;
     }
   }
+
+  // 오늘 첫 풀이 시 streak 업데이트 (접속이 아닌 실제 학습 기준)
+  if (!S.todayStudied) {
+    S.todayStudied = true;
+    const todayStr = new Date().toDateString();
+    const yesterday = new Date(Date.now()-86400000).toDateString();
+    if (S.lastStudyDate === yesterday) S.streakDays++;
+    else if (!S.lastStudyDate || S.lastStudyDate !== todayStr) S.streakDays = 1;
+    S.lastStudyDate = todayStr;
+  }
+
   if (q.conceptKey && S.conceptScores[q.conceptKey]) {
     S.conceptScores[q.conceptKey].a++;
     if (correct) S.conceptScores[q.conceptKey].c++;
@@ -2256,9 +2268,16 @@ function importData(e) {
   r.readAsText(file);
 }
 
-function resetData() {
-  if (!confirm('모든 학습 데이터를 초기화합니까?')) return;
+async function resetData() {
+  if (!confirm('모든 학습 데이터를 초기화합니까?\n(로컬 + 클라우드 데이터 모두 삭제됩니다)')) return;
+  // 로컬 삭제
   localStorage.removeItem('mfl_v3');
+  // 클라우드 데이터도 삭제 (빈 상태로 덮어씌우기)
+  if (mflUid && window.MFL_FB) {
+    try {
+      await window.MFL_FB.saveCloudData(mflUid, JSON.parse(JSON.stringify(DEFAULT_STATE)));
+    } catch(e) { console.warn('Cloud reset failed:', e); }
+  }
   location.reload();
 }
 
@@ -2361,14 +2380,11 @@ function now() {
 function init() {
   loadState();
 
-  // Streak & daily reset
+  // 날짜가 바뀌면 오늘 통계만 초기화 (streak은 접속 시 올리지 않음 — 문제 풀어야 올라감)
   const todayStr = new Date().toDateString();
   if (S.lastStudyDate !== todayStr) {
-    const yesterday = new Date(Date.now()-86400000).toDateString();
-    if (S.lastStudyDate === yesterday) S.streakDays++;
-    else if (S.lastStudyDate && S.lastStudyDate !== todayStr) S.streakDays = 1;
-    S.lastStudyDate = todayStr;
     S.todayStats = {total:0, correct:0};
+    S.todayStudied = false; // 오늘 1문제 이상 풀었는지 여부
     saveState();
   }
 
