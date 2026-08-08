@@ -788,13 +788,15 @@ function scheduleCloudSave() {
   setSyncStatus('동기화 대기 중…');
   cloudSaveTimer = setTimeout(async () => {
     try {
-      await window.MFL_FB.saveCloudData(mflUid, S);
+      // API 키는 보안상 클라우드에 저장하지 않음 (각 기기 로컬에만 보관)
+      const cloudState = {...S, apiKey: ''};
+      await window.MFL_FB.saveCloudData(mflUid, cloudState);
       setSyncStatus('동기화됨 · ' + now());
     } catch (e) {
       console.warn('Cloud save failed:', e);
       setSyncStatus('동기화 실패 (다음 저장 때 재시도)');
     }
-  }, 1500); // 짧은 시간 내 여러 saveState 호출을 한 번으로 묶음
+  }, 1500);
 }
 
 function setSyncStatus(text) {
@@ -806,11 +808,13 @@ function setSyncStatus(text) {
 // "더 많이 푼 쪽"을 기준으로 최신으로 간주하여 deepMerge 순서를 정함(데이터 손실 방지 우선).
 async function mergeWithCloud(uid) {
   setSyncStatus('클라우드 데이터 확인 중…');
+  const localApiKey = S.apiKey || ''; // 병합 전 로컬 API 키 보존
   try {
     const cloud = await window.MFL_FB.loadCloudData(uid);
     if (!cloud) {
-      // 클라우드에 데이터가 없으면(첫 로그인) 현재 로컬 데이터를 그대로 업로드
-      await window.MFL_FB.saveCloudData(uid, S);
+      // 클라우드에 데이터가 없으면(첫 로그인) 현재 로컬 데이터를 그대로 업로드 (API 키 제외)
+      const uploadState = {...S, apiKey: ''};
+      await window.MFL_FB.saveCloudData(uid, uploadState);
       setSyncStatus('동기화됨 (최초 업로드)');
       return;
     }
@@ -844,6 +848,13 @@ async function mergeWithCloud(uid) {
     merged.allStats = cloudTotal >= localTotal ? cloud.allStats : S.allStats;
 
     S = deepMerge(JSON.parse(JSON.stringify(DEFAULT_STATE)), merged);
+    S.apiKey = localApiKey; // 클라우드 데이터가 API 키를 덮어쓰지 않도록 로컬 값 복원
+    // todayStudied: 날짜가 오늘이 아니면 강제 false (타이밍 이슈 방지)
+    const todayStr = new Date().toDateString();
+    if (S.lastStudyDate !== todayStr) {
+      S.todayStudied = false;
+      S.todayStats = {total:0, correct:0};
+    }
     recalcPhaseProgress();
     saveState();
     setSyncStatus('동기화됨');
@@ -1131,8 +1142,14 @@ async function generateQuestions(count=20, includeReview=false) {
     // 나머지 배치를 백그라운드에서 순차 생성 — 화면 건드리지 않음
     for (let b = 1; b < batches; b++) {
       await fetchBatch(b);
-      // 생성된 문제를 기존 배열에 조용히 추가 (answered 슬롯은 이미 확보됨)
       S.questions = [...allQs];
+      saveState();
+    }
+
+    // 모든 배치 완료 후 answered를 실제 생성된 문제 수에 맞게 조정
+    // (배치 실패로 questions가 count보다 적으면 초과 null 슬롯 제거)
+    if (S.answered.length > S.questions.length) {
+      S.answered = S.answered.slice(0, S.questions.length);
       saveState();
     }
 
@@ -1208,19 +1225,23 @@ function renderDataTable(dt) {
     </div>`;
 }
 
-function renderQ(i) {
+function renderQ(i, waitCount = 0) {
   const q = S.questions[i];
 
   // 백그라운드 생성 중이고 아직 이 슬롯이 준비 안 된 경우
   if (!q) {
-    if (isGenerating) {
+    if (isGenerating && waitCount < 30) { // 최대 30초(30회) 대기 후 중단
       document.getElementById('q-meta').innerHTML = '';
       document.getElementById('q-ctx').style.display = 'none';
       document.getElementById('q-text').textContent = '다음 문제를 준비하고 있습니다...';
-      document.getElementById('q-opts').innerHTML = '<div style="color:var(--text3);font-size:13px;margin-top:8px">잠시 후 자동으로 표시됩니다</div>';
+      document.getElementById('q-opts').innerHTML = '<div style="color:var(--text3);font-size:15px;margin-top:8px">잠시 후 자동으로 표시됩니다</div>';
       document.getElementById('q-result').classList.remove('show');
-      // 1초 후 재시도
-      setTimeout(() => { if (S.questions[i]) renderQ(i); }, 1000);
+      setTimeout(() => renderQ(i, waitCount + 1), 1000);
+    } else if (!isGenerating) {
+      // 생성이 끝났는데도 문제가 없으면 — 배치 실패로 문제가 부족한 경우
+      document.getElementById('q-text').textContent = '이 문제는 생성에 실패했습니다.';
+      document.getElementById('q-opts').innerHTML =
+        `<button class="btn btn-primary" style="margin-top:12px" onclick="generateQuestions(20,false)">새 문제 생성</button>`;
     }
     return;
   }
@@ -1422,6 +1443,10 @@ function recordAnswer(i, correct) {
   // answerLog: Phase별 최근 N문제 정답률 계산용
   if (!Array.isArray(S.answerLog)) S.answerLog = [];
   S.answerLog.push({ phase: q.phase, correct: correct ? 1 : 0, date: today() });
+  // Firebase 문서 크기 제한(1MB) 방지 — 전체 4000개 초과 시 가장 오래된 항목 제거
+  if (S.answerLog.length > 4000) {
+    S.answerLog = S.answerLog.slice(-4000);
+  }
   // 최근 출제 이력 기록 (중복 문제 방지용)
   if (!Array.isArray(S.seenQuestions)) S.seenQuestions = [];
   S.seenQuestions.push({
@@ -2269,13 +2294,16 @@ function importData(e) {
 }
 
 async function resetData() {
-  if (!confirm('모든 학습 데이터를 초기화합니까?\n(로컬 + 클라우드 데이터 모두 삭제됩니다)')) return;
-  // 로컬 삭제
+  if (!confirm('모든 학습 데이터를 초기화합니까?\n(로컬 + 클라우드 데이터 모두 삭제됩니다)\nAPI 키는 유지됩니다.')) return;
+  const savedApiKey = S.apiKey || '';
+  // 로컬 삭제 후 API 키만 복원
   localStorage.removeItem('mfl_v3');
-  // 클라우드 데이터도 삭제 (빈 상태로 덮어씌우기)
+  const freshState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  freshState.apiKey = savedApiKey;
+  // 클라우드에도 초기화된 상태로 덮어씌우기 (API 키 제외)
   if (mflUid && window.MFL_FB) {
     try {
-      await window.MFL_FB.saveCloudData(mflUid, JSON.parse(JSON.stringify(DEFAULT_STATE)));
+      await window.MFL_FB.saveCloudData(mflUid, freshState);
     } catch(e) { console.warn('Cloud reset failed:', e); }
   }
   location.reload();
@@ -2287,7 +2315,7 @@ async function resetData() {
 const SECTION_META = {
   learn:    {title:'오늘의 학습',     sub:'Phase 믹스 · 시사 연계 · 기업 진단 훈련'},
   review:   {title:'오답 복습',       sub:'틀린 개념은 완전히 이해할 때까지 반복'},
-  progress: {title:'주간 리포트',     sub:'목표 대비 갭(Gap) 분석 — 칭찬 없이'},
+  progress: {title:'주간 리포트',     sub:'AI 냉정 진단 — 칭찬 없이, 갭(Gap) 중심으로'},
   concepts: {title:'개념 이해도 맵',  sub:'Phase 1~4 · 개념별 현재 숙련도 시각화'},
   history:  {title:'학습 이력',       sub:'날짜별 학습 기록'},
   roadmap:  {title:'학습 로드맵',     sub:'My FinLab 설계 철학과 Phase 1~4 구조'},
@@ -2422,7 +2450,12 @@ async function showWelcome() {
 
   // 상황 판단 → 버튼 구성
   const actions = document.getElementById('welcome-actions');
-  const hasInProgress = S.questions.length > 0 && S.answered.some(a => a === null);
+  // 백그라운드 생성 중인 경우는 "이어서 풀기"가 아닌 "생성 중" 상태
+  // questions가 있고, 사용자가 실제로 답한 게 있고, 아직 null이 남아있을 때만 이어서 풀기
+  const hasInProgress = !isGenerating &&
+    S.questions.length > 0 &&
+    S.answered.some(a => a !== null) && // 최소 1개 이상 답함
+    S.answered.some(a => a === null);   // 아직 미답 문항 있음
   const todayDone = S.todayStats.total >= 20;
   const doneCount = S.answered.filter(a => a !== null).length;
   const totalCount = S.questions.length;
