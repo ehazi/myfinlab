@@ -1112,7 +1112,7 @@ async function generateQuestions(count=20, includeReview=false) {
 위 "최근 출제된 문제" 목록과 주제·상황·수치가 겹치지 않는 새로운 문제로 생성할 것.
 반드시 JSON 배열 ${need}개만 출력. 다른 텍스트 없이.`;
     try {
-      const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 4000);
+      const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 8000);
       const batch = parseJSON(raw);
       if (batch && batch.length) {
         allQs = allQs.concat(batch.slice(0, need).map(sanitizeQ));
@@ -1788,7 +1788,7 @@ async function startReview(idx) {
   showState('loading');
   const prompt = `취약개념 재출제. 원래문제: "${w.q}". 개념: ${w.concept}. 완전히 다른 상황·수치로 1개 생성. JSON 배열만 출력.`;
   try {
-    const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt(), 2000);
+    const raw = await callClaude([{role:'user',content:prompt}], buildSysPrompt(), 4000);
     const arr = parseJSON(raw);
     if (!arr?.length) throw new Error('파싱 실패');
     S.questions = arr.map(sanitizeQ);
