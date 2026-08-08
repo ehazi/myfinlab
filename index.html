@@ -1935,16 +1935,26 @@ const CONCEPT_META = {
 };
 
 // 개념별 정답률 — answerLog 기반 최근 N문제 (Phase 목표 문제수 ÷ 해당 Phase 개념 수)
+// conceptKey가 있는 데이터가 충분하면 answerLog 기반, 없으면 conceptScores(누적) fallback
 function conceptPct(key) {
   const meta = CONCEPT_META[key];
   if (!meta) return 0;
+
+  // answerLog에서 conceptKey가 있는 항목만 필터
   const log = (S.answerLog || []).filter(e => e.conceptKey === key);
-  if (!log.length) return 0;
-  // 개념별 최근 N개: Phase 목표 문제수 ÷ 해당 Phase 개념 수
   const phaseConceptCount = Object.values(CONCEPT_META).filter(m => m.phase === meta.phase).length;
   const n = Math.ceil(PHASE_GOALS[meta.phase].count / phaseConceptCount);
-  const recent = log.slice(-n);
-  return Math.round(recent.filter(e => e.correct).length / recent.length * 100);
+
+  if (log.length > 0) {
+    // answerLog 데이터가 있으면 최근 N개 기준
+    const recent = log.slice(-n);
+    return Math.round(recent.filter(e => e.correct).length / recent.length * 100);
+  }
+
+  // fallback: conceptScores 누적 기준 (기존 데이터 또는 아직 answerLog가 없을 때)
+  const s = S.conceptScores[key];
+  if (!s || s.a === 0) return 0;
+  return Math.round(s.c / s.a * 100);
 }
 
 let radarChart = null, histChart = null;
