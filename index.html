@@ -1106,19 +1106,35 @@ async function generateQuestions(count=20, includeReview=false) {
     const need = Math.min(batchSize, count - allQs.length);
     if (need <= 0) return;
     const usedTitles = allQs.map(q => q.question.slice(0,20)).join(' / ');
-    const usedCtx = usedTitles ? `\n이번 배치 내 중복금지: ${usedTitles}` : '';
-    const prompt = `수준:${lvl}${reviewCtx}${profileCtx ? '\n'+profileCtx : ''}${usedCtx}${seenCtx}
-재무회계 문제 정확히 ${need}개 생성. Phase 1~4 균형있게(난이도 수준${S.userLevel} 기준), 시사연계 가능.
-위 "최근 출제된 문제" 목록과 주제·상황·수치가 겹치지 않는 새로운 문제로 생성할 것.
+    const usedCtx = usedTitles ? `\n이번 세션 내 중복금지(제목): ${usedTitles}` : '';
+
+    // 직전 배치에서 출제된 conceptKey만 금지 (전체 누적 금지는 개념 고갈 야기)
+    const prevBatchStart = Math.max(0, allQs.length - batchSize);
+    const recentConcepts = [...new Set(allQs.slice(prevBatchStart).map(q => q.conceptKey).filter(Boolean))];
+    const usedConceptCtx = recentConcepts.length
+      ? `\n직전 배치에서 출제된 개념(이번 배치에서 중복 금지): ${recentConcepts.join(', ')}`
+      : '';
+
+    const prompt = `수준:${lvl}${reviewCtx}${profileCtx ? '\n'+profileCtx : ''}${usedCtx}${usedConceptCtx}${seenCtx}
+재무회계 문제 정확히 ${need}개 생성. 아래 규칙 엄수:
+1. Phase 1~4를 균형있게 배분 (한 Phase에 몰리지 않게)
+2. 각 문제는 서로 다른 conceptKey 사용 — 같은 배치 내 conceptKey 중복 금지
+3. 직전 배치와 동일한 개념·주제 반복 금지
+4. 위 "최근 출제된 문제" 목록과 주제·상황·수치 겹침 금지
+5. 난이도 수준${S.userLevel} 기준, 시사연계 가능
 반드시 JSON 배열 ${need}개만 출력. 다른 텍스트 없이.`;
-    try {
-      const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 8000);
-      const batch = parseJSON(raw);
-      if (batch && batch.length) {
-        allQs = allQs.concat(batch.slice(0, need).map(sanitizeQ));
+    for (let attempt = 0; attempt < 2; attempt++) { // 실패 시 1회 재시도
+      try {
+        const raw = await callClaude([{role:'user', content:prompt}], buildSysPrompt(), 8000);
+        const batch = parseJSON(raw);
+        if (batch && batch.length) {
+          allQs = allQs.concat(batch.slice(0, need).map(sanitizeQ));
+          return; // 성공하면 즉시 반환
+        }
+      } catch(e) {
+        console.warn(`Batch ${batchIndex} attempt ${attempt+1} error:`, e.message);
+        if (attempt === 1) console.warn('Batch failed after retry, continuing with partial questions');
       }
-    } catch(e) {
-      console.warn('Batch', batchIndex, 'error:', e.message);
     }
   }
 
@@ -1278,7 +1294,15 @@ function renderQ(i, waitCount = 0) {
       <div style="font-size:12px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px">서술형 답변 (글자 수 제한 없음)</div>
       <textarea id="subj-input-${i}" ${done?'disabled':''} placeholder="분석 내용을 자세히 서술해 주세요."
         style="width:100%;min-height:180px;background:var(--bg3);border:1px solid ${done?'var(--border)':'var(--border2)'};border-radius:8px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font);outline:none;resize:vertical;line-height:1.7">${done?esc(ans.text||''):''}</textarea>
-      ${done && ans.score !== undefined ? `<div style="margin-top:10px;padding:10px 14px;border-radius:8px;background:${ans.score>=70?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${ans.score>=70?'rgba(77,190,150,.3)':'rgba(212,148,42,.3)'}"><span style="font-size:16px;font-weight:800;color:${ans.score>=70?'var(--green)':'var(--amber)'}">${ans.score}점</span></div>` : ''}
+      ${done && ans.score !== undefined ? `
+        <div style="margin-top:10px;padding:10px 14px;border-radius:8px;background:${ans.score>=70?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${ans.score>=70?'rgba(77,190,150,.3)':'rgba(212,148,42,.3)'}">
+          <span style="font-size:18px;font-weight:800;color:${ans.score>=70?'var(--green)':'var(--amber)'}">${ans.score}점</span>
+        </div>
+        ${ans.feedback ? `<div style="margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-bottom:8px">AI 채점 피드백</div>
+          <div style="font-size:14px;color:var(--text2);line-height:1.8">${esc(ans.feedback)}</div>
+        </div>` : ''}
+      ` : ''}
       ${!done ? `<div style="margin-top:10px"><button class="btn btn-primary" onclick="submitSubjective(${i})">제출 및 AI 채점 →</button></div>` : ''}
     `;
   } else {
@@ -1391,11 +1415,28 @@ async function submitSubjective(i) {
     const correct = score >= 70;
     recordAnswer(i, correct);
 
-    // Show feedback
-    if (textEl.parentElement) {
-      textEl.disabled = true;
-      textEl.parentElement.innerHTML += `<div style="margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px"><div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-bottom:8px">AI 채점 결과 — ${score}점</div><div style="font-size:13px;color:var(--text2);line-height:1.7">${esc(feedback)}</div></div>`;
-    }
+    // textarea는 그대로 두고, 피드백을 별도 div에 삽입 (innerHTML 재생성 방지)
+    textEl.disabled = true;
+    // 제출 버튼 제거
+    const submitBtn = textEl.parentElement?.querySelector('button');
+    if (submitBtn) submitBtn.remove();
+    // 내 답변 레이블 추가
+    const myAnswerLabel = document.createElement('div');
+    myAnswerLabel.style.cssText = 'font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-top:10px;margin-bottom:4px';
+    myAnswerLabel.textContent = '내 답변';
+    textEl.parentElement?.insertBefore(myAnswerLabel, textEl);
+
+    // 점수 표시
+    const scoreEl = document.createElement('div');
+    scoreEl.style.cssText = `margin-top:10px;padding:10px 14px;border-radius:8px;background:${score>=70?'var(--green-bg)':'var(--amber-bg)'};border:1px solid ${score>=70?'rgba(77,190,150,.3)':'rgba(212,148,42,.3)'}`;
+    scoreEl.innerHTML = `<span style="font-size:18px;font-weight:800;color:${score>=70?'var(--green)':'var(--amber)'}">${score}점</span>`;
+    textEl.parentElement?.appendChild(scoreEl);
+
+    // AI 피드백 표시
+    const feedbackEl = document.createElement('div');
+    feedbackEl.style.cssText = 'margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px';
+    feedbackEl.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;margin-bottom:8px">AI 채점 피드백</div><div style="font-size:14px;color:var(--text2);line-height:1.8">${esc(feedback)}</div>`;
+    textEl.parentElement?.appendChild(feedbackEl);
 
     document.getElementById('q-result').classList.add('show');
     showResult(i);
@@ -2005,39 +2046,31 @@ function renderRadar() {
 // ═══════════════════════════════════════════
 // HISTORY
 // ═══════════════════════════════════════════
-// logSession: 문제를 풀 때마다 호출 — 오늘 날짜 레코드를 실시간으로 업데이트
-// (세션 완료 여부와 관계없이 1문제 이상 풀면 학습 이력에 기록됨)
+// logSession: 문제를 풀 때마다 호출 — 오늘 날짜 레코드를 todayStats 누적 기준으로 업데이트
+// 추가 5문제 등 여러 세션을 풀어도 하루 전체 누적이 정확히 반영됨
 function logSession() {
   const dateStr = today();
   const timeStr = now();
-  const answered = S.answered.filter(a => a !== null);
-  if (!answered.length) return; // 아직 1문제도 안 풀었으면 기록 안 함
-
-  const correct = S.questions.filter((q,i) => {
-    const a = S.answered[i];
-    if (a === null) return false;
-    return q.isSubjective ? (a?.score??0) >= 70 : a === q.answer;
-  }).length;
+  if (!S.todayStats || S.todayStats.total === 0) return;
 
   let day = S.studyHistory.find(d => d.date === dateStr);
   if (!day) {
     day = {date: dateStr, sessions: []};
     S.studyHistory.push(day);
   }
-  // 오늘 세션이 이미 있으면 업데이트, 없으면 새로 추가
+  // 오늘 레코드가 있으면 누적값으로 업데이트, 없으면 새로 추가
   if (day.sessions.length > 0) {
     const session = day.sessions[day.sessions.length - 1];
     session.end = timeStr;
-    session.total = answered.length;
-    session.correct = correct;
-    session.phases = [...new Set(S.questions.slice(0, answered.length).map(q => q.phase))];
+    session.total = S.todayStats.total;     // 오늘 누적 전체 풀이수
+    session.correct = S.todayStats.correct; // 오늘 누적 정답수
   } else {
     day.sessions.push({
       start: S.sessionStart || timeStr,
       end: timeStr,
-      total: answered.length,
-      correct,
-      phases: [...new Set(S.questions.slice(0, answered.length).map(q => q.phase))],
+      total: S.todayStats.total,
+      correct: S.todayStats.correct,
+      phases: [],
     });
   }
   saveState();
