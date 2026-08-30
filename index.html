@@ -1456,6 +1456,7 @@ function recordAnswer(i, correct) {
     date: today(),
   });
   recalcPhaseProgress();
+  logSession(); // 1문제 풀 때마다 학습 이력 실시간 업데이트
 }
 
 // ═══════════════════════════════════════════
@@ -1533,7 +1534,7 @@ function getPhaseDetail(ph) {
 function checkAllDone() {
   if (S.answered.every(a => a !== null)) {
     document.getElementById('more-wrap').style.display = 'block';
-    logSession();
+    // logSession은 recordAnswer에서 매 문제마다 호출되므로 여기선 불필요
   }
 }
 
@@ -2004,21 +2005,41 @@ function renderRadar() {
 // ═══════════════════════════════════════════
 // HISTORY
 // ═══════════════════════════════════════════
+// logSession: 문제를 풀 때마다 호출 — 오늘 날짜 레코드를 실시간으로 업데이트
+// (세션 완료 여부와 관계없이 1문제 이상 풀면 학습 이력에 기록됨)
 function logSession() {
   const dateStr = today();
   const timeStr = now();
-  let day = S.studyHistory.find(d => d.date===dateStr);
-  if (!day) { day={date:dateStr,sessions:[]}; S.studyHistory.push(day); }
-  day.sessions.push({
-    start: S.sessionStart||timeStr, end: timeStr,
-    total: S.questions.length,
-    correct: S.questions.filter((_,i)=>{
-      const a=S.answered[i]; const q=S.questions[i];
-      return q.isSubjective?(a?.score??0)>=70:a===q.answer;
-    }).length,
-    phases: [...new Set(S.questions.map(q=>q.phase))]
-  });
-  S.sessionStart = null;
+  const answered = S.answered.filter(a => a !== null);
+  if (!answered.length) return; // 아직 1문제도 안 풀었으면 기록 안 함
+
+  const correct = S.questions.filter((q,i) => {
+    const a = S.answered[i];
+    if (a === null) return false;
+    return q.isSubjective ? (a?.score??0) >= 70 : a === q.answer;
+  }).length;
+
+  let day = S.studyHistory.find(d => d.date === dateStr);
+  if (!day) {
+    day = {date: dateStr, sessions: []};
+    S.studyHistory.push(day);
+  }
+  // 오늘 세션이 이미 있으면 업데이트, 없으면 새로 추가
+  if (day.sessions.length > 0) {
+    const session = day.sessions[day.sessions.length - 1];
+    session.end = timeStr;
+    session.total = answered.length;
+    session.correct = correct;
+    session.phases = [...new Set(S.questions.slice(0, answered.length).map(q => q.phase))];
+  } else {
+    day.sessions.push({
+      start: S.sessionStart || timeStr,
+      end: timeStr,
+      total: answered.length,
+      correct,
+      phases: [...new Set(S.questions.slice(0, answered.length).map(q => q.phase))],
+    });
+  }
   saveState();
 }
 
